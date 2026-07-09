@@ -1,0 +1,12 @@
+/* Transparent bg so the widget floats inside its host iframe. */
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: transparent;
+  -webkit-font-smoothing: antialiased;
+}

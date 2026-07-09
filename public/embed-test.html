@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Vani widget — embed test</title>
+    <style>
+      body { margin: 0; font-family: system-ui, sans-serif; background: #f1f5fb; }
+      .host { min-height: 100vh; display: grid; place-items: center; gap: 16px; }
+      p { color: #475569; }
+    </style>
+  </head>
+  <body>
+    <div class="host">
+      <p>Host page — widget is embedded below via &lt;iframe&gt;</p>
+      <!-- allow="microphone" is REQUIRED for the mic to work in the iframe -->
+      <iframe
+        src="/"
+        allow="microphone"
+        style="border:0; width:420px; height:600px; background:transparent"
+        title="Vani voice assistant"
+      ></iframe>
+    </div>
+  </body>
+</html>
