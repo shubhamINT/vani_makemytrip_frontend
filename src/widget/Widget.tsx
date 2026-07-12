@@ -53,7 +53,6 @@ export default function Widget() {
           <LiveKitRoom
             serverUrl={creds.url}
             token={creds.token}
-            room={creds.room}
             connect
             audio
             video={false}
