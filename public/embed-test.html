@@ -1,24 +1,210 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Vani widget — embed test</title>
-    <style>
-      body { margin: 0; font-family: system-ui, sans-serif; background: #f1f5fb; }
-      .host { min-height: 100vh; display: grid; place-items: center; gap: 16px; }
-      p { color: #475569; }
-    </style>
-  </head>
-  <body>
-    <div class="host">
-      <p>Host page — widget is embedded below via &lt;iframe&gt;</p>
-      <!-- allow="microphone" is REQUIRED for the mic to work in the iframe -->
-      <iframe
-        src="/"
-        allow="microphone"
-        style="border:0; width:420px; height:600px; background:transparent"
-        title="Vani voice assistant"
-      ></iframe>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vaani widget — embed test</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #f1f5fb 0%, #e8eef8 100%);
+      min-height: 100vh;
+    }
+
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 24px 120px;
+    }
+
+    h1 { font-size: 28px; font-weight: 700; color: #0b1b3a; margin: 0 0 8px; }
+    .sub { font-size: 15px; color: #64748b; margin: 0 0 40px; }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(11, 27, 58, 0.08);
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+
+    .card h2 {
+      font-size: 18px;
+      font-weight: 650;
+      color: #0b1b3a;
+      margin: 0 0 6px;
+    }
+
+    .card .desc {
+      font-size: 14px;
+      color: #64748b;
+      margin: 0 0 20px;
+      line-height: 1.5;
+    }
+
+    pre {
+      background: #f1f5f9;
+      border-radius: 12px;
+      padding: 18px;
+      font-size: 13px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    code { font-size: 13px; }
+
+    .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+    .badge--green { background: #dcfce7; color: #166534; }
+    .badge--blue { background: #dbeafe; color: #1e40af; }
+    .badge--amber { background: #fef3c7; color: #92400e; }
+
+    .demo-area {
+      margin-top: 24px;
+      padding: 24px;
+      background: #f8faff;
+      border: 2px dashed #cbd5e1;
+      border-radius: 12px;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    .demo-area .iframe-wrapper {
+      display: inline-block;
+      position: relative;
+      background: rgba(255,255,255,0.5);
+      border: 1px solid #e2e8f5;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .iframe-wrapper iframe {
+      display: block;
+      background: transparent;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 700px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <h1>Vaani widget — embed test</h1>
+  <p class="sub">Two ways to embed the widget on any host page.</p>
+
+  <!-- ── Approach A: Simple iframe ── -->
+  <div class="card">
+    <span class="badge badge--green">No JS required</span>
+    <h2>A — Simple &lt;iframe&gt; tag</h2>
+    <p class="desc">
+      Drop this <code>&lt;iframe&gt;</code> anywhere on your page.
+      The iframe is fixed at bottom-right via CSS on the host.
+      You <strong>must</strong> include <code>allow="microphone; autoplay"</code>.
+    </p>
+
+    <pre>&lt;iframe src="/"
+  allow="microphone; autoplay"
+  title="Vaani Voice Assistant"
+  style="
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    border: 0;
+    width: 420px;
+    height: 750px;
+    z-index: 2147483647;
+    background: transparent;
+  "
+&gt;&lt;/iframe&gt;</pre>
+
+    <div class="demo-area">
+      <p>This page uses the simple iframe below ↓</p>
+      <div class="iframe-wrapper">
+        <iframe src="/" allow="microphone; autoplay"
+                title="Vaani Voice Assistant"
+                style="width:420px;height:750px;border:0;background:transparent"></iframe>
+      </div>
+      <p style="margin-top:12px;font-size:12px">
+        Positioned inline (demo). On a real host page you'd use
+        <code>position:fixed;bottom:0;right:0</code>.
+      </p>
     </div>
-  </body>
+  </div>
+
+  <!-- ── Approach B: Script embed ── -->
+  <div class="card">
+    <span class="badge badge--blue">Recommended — dynamic sizing</span>
+    <h2>B — Script embed</h2>
+    <p class="desc">
+      Include one <code>&lt;script&gt;</code> tag. It creates a fixed-position
+      iframe at bottom-right and dynamically resizes it as the widget opens/closes.
+      The widget appears as a floating FAB when idle and expands to a full chat panel
+      when active.
+    </p>
+
+    <pre>&lt;script src="/embed.js"&gt;&lt;/script&gt;</pre>
+
+    <p class="desc" style="margin-top:16px">
+      To point at a different deployment, set <code>data-src</code>:
+    </p>
+
+    <pre>&lt;script src="/embed.js" data-src="https://your-domain.com"&gt;&lt;/script&gt;</pre>
+
+    <div class="demo-area" style="position:relative;min-height:100px">
+      <p style="margin-bottom:12px">The script embed is active below ⇩</p>
+      <p style="font-size:12px;color:#94a3b8">
+        (Look at the bottom-right corner of your browser window.)
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Notes ── -->
+  <div class="card">
+    <span class="badge badge--amber">Important</span>
+    <h2>Requirements</h2>
+    <ul style="color:#475569;font-size:14px;line-height:1.7;padding-left:20px">
+      <li>
+        <strong>Microphone access</strong> — the iframe needs
+        <code>allow="microphone"</code>. Without it the browser denies
+        mic access inside the frame.
+      </li>
+      <li>
+        <strong>Autoplay</strong> — add <code>autoplay</code> to the
+        <code>allow</code> list so audio can play without user gesture.
+      </li>
+      <li>
+        <strong>CORS</strong> — your token endpoint must include
+        <code>Access-Control-Allow-Origin: *</code> (or your host origin)
+        since the widget fetches it cross-origin.
+      </li>
+      <li>
+        <strong>sandbox</strong> — if your host page uses a restrictive
+        <code>sandbox</code> attribute, include
+        <code>allow-scripts allow-same-origin allow-popups</code>.
+      </li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- Script embed (appears at bottom-right) -->
+<script src="/embed.js"></script>
+</body>
 </html>

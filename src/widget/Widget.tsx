@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   LiveKitRoom,
   RoomAudioRenderer,
@@ -71,6 +71,31 @@ export default function Widget() {
     notifyHost('collapsed');
   };
 
+  /* ── Ref-based stale-safe references for host callbacks ── */
+  const startRef = useRef(start);
+  startRef.current = start;
+  const resetRef = useRef(reset);
+  resetRef.current = reset;
+  const credsRef = useRef(creds);
+  credsRef.current = creds;
+
+  /* ── Listen for commands from host page ── */
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      const type = event.data?.type;
+      if (type === 'vani:start') startRef.current();
+      if (type === 'vani:end' && credsRef.current) resetRef.current();
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
+  /* ── Forward state changes to host ── */
+  useEffect(() => {
+    if (!window.parent || window.parent === window) return;
+    window.parent.postMessage({ type: 'vani:state', status }, '*');
+  }, [status]);
+
   const showFab = !creds || minimized;
 
   /* ── FAB (idle idle or call active but minimized) ── */
@@ -80,7 +105,7 @@ export default function Widget() {
 
       <button
         className={`vw-fab${status === 'connecting' ? ' vw-fab--busy' : ''}${minimized ? ' vw-fab--active' : ''}`}
-        onClick={minimized ? () => setMinimized(false) : start}
+        onClick={minimized ? () => { setMinimized(false); notifyHost('open'); } : start}
         aria-label={minimized ? 'Open chat' : 'Talk to Vaani'}
       >
         <span className="vw-fab-swirl" />
@@ -143,7 +168,7 @@ export default function Widget() {
             <h1 className="vw-title">{AGENT}</h1>
             <button
               className="vw-close"
-              onClick={() => setMinimized(true)}
+              onClick={() => { setMinimized(true); notifyHost('collapsed'); }}
               aria-label="Minimise"
             >
               <CloseIcon />

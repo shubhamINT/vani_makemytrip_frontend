@@ -1,4 +1,5 @@
-:root {
+/* Root fills the iframe viewport; vars scoped here so they never leak. */
+.vw-root {
   --ink: #0b1b3a;
   --blue: #1b4298;
   --blue-bright: #2d6be1;
@@ -8,10 +9,7 @@
   --danger: #e5484d;
   --radius: 20px;
   --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-}
 
-/* Root fills the iframe viewport */
-.vw-root {
   width: 100%;
   height: 100%;
   font-family: var(--font);
