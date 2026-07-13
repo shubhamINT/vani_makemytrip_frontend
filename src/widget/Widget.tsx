@@ -8,8 +8,8 @@ import '@livekit/components-styles';
 import { fetchToken, type TokenResult } from './useToken';
 import ErrorBoundary from './ErrorBoundary';
 import Visualizer from './Visualizer';
+import Transcript from './Transcript';
 import Controls from './Controls';
-import AgentUI from './AgentUI';
 import './widget.css';
 
 type Status = 'idle' | 'connecting' | 'connected' | 'error';
@@ -53,7 +53,6 @@ export default function Widget() {
           <LiveKitRoom
             serverUrl={creds.url}
             token={creds.token}
-            room={creds.room}
             connect
             audio
             video={false}
@@ -76,8 +75,8 @@ export default function Widget() {
             <RoomAudioRenderer />
             <StartAudio label="Click to enable audio" />
             <div className="vw-body">
+              <Transcript />
               <Visualizer />
-              <AgentUI />
             </div>
             <Controls />
           </LiveKitRoom>

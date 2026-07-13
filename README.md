@@ -3,6 +3,24 @@
 An embeddable voice-agent widget (React + Vite). Drop it into any site with an
 `<iframe>`; it connects to your LiveKit backend agent for voice + text chat.
 
+## Project Structure
+
+```
+src/
+├── main.tsx               # React entry point
+├── App.tsx                # Root component — renders <Widget />
+├── index.css              # Global resets, transparent bg
+└── widget/                # All UI lives here
+    ├── Widget.tsx         # Orchestrator: state machine, token fetch, LiveKitRoom
+    ├── Transcript.tsx     # Unified chat feed: messages + transcriptions + OpenUI cards
+    ├── Visualizer.tsx     # LiveKit BarVisualizer + voice-assistant state label
+    ├── Controls.tsx       # Text input, mic toggle, end-call button
+    ├── ErrorBoundary.tsx  # Catches render errors, shows retry UI
+    ├── useToken.ts        # Token fetch + response parsing from backend
+    ├── useToken.check.ts  # Assertion tests for parseTokenResponse
+    └── widget.css         # All component styles (single file, vw- namespace)
+```
+
 ## Controls
 - **Start call** — fetches a token from your backend and connects.
 - **Mute / Unmute** — toggles your microphone.

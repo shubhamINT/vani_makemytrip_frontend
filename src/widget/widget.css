@@ -88,13 +88,13 @@
 
 /* Visualizer */
 .vw-visualizer {
-  flex: 1;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  padding: 28px 24px;
+  gap: 8px;
+  padding: 12px 24px;
 }
 .vw-bars {
   --lk-va-bar-width: 10px;
@@ -216,12 +216,91 @@
   flex-direction: column;
 }
 
-/* ── OpenUI rendered cards ── */
-.vw-openui-list {
+/* ── Transcript (chat + speech + OpenUI cards) ── */
+.vw-transcript {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 0 14px 14px;
+  gap: 6px;
+  padding: 0 14px 10px;
+}
+
+.vw-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 85%;
+  animation: vw-msg-in 0.25s ease-out both;
+}
+
+.vw-msg--user {
+  align-self: flex-end;
+}
+
+.vw-msg--agent {
+  align-self: flex-start;
+}
+
+.vw-msg-label {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  padding: 0 4px;
+}
+
+.vw-msg--user .vw-msg-label {
+  color: var(--blue-bright);
+  text-align: right;
+}
+
+.vw-msg--agent .vw-msg-label {
+  color: var(--muted);
+  text-align: left;
+}
+
+.vw-msg-text {
+  font-size: 13px;
+  line-height: 1.45;
+  padding: 8px 12px;
+  border-radius: 12px;
+  word-wrap: break-word;
+}
+
+.vw-msg--user .vw-msg-text {
+  background: var(--blue-bright);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.vw-msg--agent .vw-msg-text {
+  background: #f1f5f9;
+  color: var(--ink);
+  border-bottom-left-radius: 4px;
+}
+
+.vw-msg-time {
+  font-size: 10px;
+  color: var(--muted);
+  padding: 0 4px;
+  opacity: 0.75;
+}
+
+.vw-msg--user .vw-msg-time {
+  text-align: right;
+}
+
+.vw-msg--agent .vw-msg-time {
+  text-align: left;
+}
+
+@keyframes vw-msg-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .vw-openui-card {
