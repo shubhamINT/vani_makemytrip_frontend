@@ -1,4 +1,4 @@
-# Vani — LiveKit Voice Agent Widget
+# Vaani — LiveKit Voice Agent Widget
 
 An embeddable voice-agent widget (React + Vite). Drop it into any site with an
 `<iframe>`; it connects to your LiveKit backend agent for voice + text chat.
@@ -22,7 +22,7 @@ src/
 ```
 
 ## Controls
-- **Start call** — fetches a token from your backend and connects.
+- **FAB button** — floating action button (bottom-right); click to fetch a token and connect.
 - **Mute / Unmute** — toggles your microphone.
 - **Text input** — type a message to the agent.
 - **End** — disconnects.
