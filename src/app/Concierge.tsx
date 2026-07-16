@@ -3,21 +3,14 @@ import { LiveKitRoom, RoomAudioRenderer, StartAudio } from '@livekit/components-
 import '@livekit/components-styles';
 import { fetchToken, type TokenResult } from './useToken';
 import ErrorBoundary from './ErrorBoundary';
-import Conversation from './Conversation';
+import Stage from './Stage';
+import Transcript from './Transcript';
 import Composer from './Composer';
-import Visualizer from './Visualizer';
 import './site.css';
 
 type ConnState = 'idle' | 'connecting' | 'connected' | 'error';
 
 const AGENT = (import.meta.env.VITE_AGENT_NAME as string) || 'MakeMyTrip';
-
-const STARTERS = [
-  'Hotels in Paris this weekend',
-  'Cheapest flight to Goa next Friday',
-  'Plan a 3-day Bali trip on a budget',
-  'Beach resorts in Bali under ₹8000/night',
-];
 
 export default function Concierge() {
   const [started, setStarted] = useState(false);
@@ -25,13 +18,13 @@ export default function Concierge() {
   const [conn, setConn] = useState<ConnState>('idle');
   const [error, setError] = useState('');
   const [pending, setPending] = useState<string | null>(null);
-  const [draft, setDraft] = useState('');
+  const [speakerMuted, setSpeakerMuted] = useState(false);
 
-  const start = async (text: string) => {
-    const msg = text.trim();
-    if (!msg || conn === 'connecting') return;
+  // Voice-first: connect with no seed message; the user just talks.
+  const start = async (text?: string) => {
+    if (conn === 'connecting') return;
     setStarted(true);
-    setPending(msg);
+    setPending(text?.trim() || null);
     setConn('connecting');
     setError('');
     try {
@@ -48,17 +41,11 @@ export default function Concierge() {
     setConn('idle');
     setStarted(false);
     setPending(null);
-    setDraft('');
+    setSpeakerMuted(false);
     setError('');
   };
 
-  const heroSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    start(draft);
-    setDraft('');
-  };
-
-  /* ── Hero (before first message) ── */
+  /* ── Hero (before connecting) ── */
   if (!started) {
     return (
       <main className="mmt">
@@ -73,32 +60,18 @@ export default function Concierge() {
           </h1>
           <span className="mmt-horizon" aria-hidden="true" />
           <p className="mmt-hero-sub">
-            Ask for flights, hotels and trips in plain words. I&rsquo;ll find and book them for you.
+            Connect and just say where you&rsquo;d like to go. I&rsquo;ll pull up flights, hotels
+            and the whole plan while we talk.
           </p>
 
-          <form className="mmt-heroform" onSubmit={heroSubmit}>
-            <input
-              className="mmt-heroinput"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              placeholder="e.g. Weekend in Jaipur with a rooftop pool"
-              aria-label="Ask the travel concierge"
-              autoFocus
-            />
-            <button className="mmt-cta" type="submit" disabled={!draft.trim()}>
-              Ask
-            </button>
-          </form>
-
-          <ul className="mmt-starters">
-            {STARTERS.map((s) => (
-              <li key={s}>
-                <button className="mmt-chip" type="button" onClick={() => start(s)}>
-                  {s}
-                </button>
-              </li>
-            ))}
-          </ul>
+          <button className="mmt-connect" type="button" onClick={() => start()}>
+            <span className="mmt-connect-ring" aria-hidden="true" />
+            <span className="mmt-connect-face">
+              <MicGlyph />
+              Connect
+            </span>
+          </button>
+          <p className="mmt-connect-hint">Uses your microphone · talk naturally</p>
         </section>
       </main>
     );
@@ -108,16 +81,11 @@ export default function Concierge() {
   return (
     <main className="mmt">
       <header className="mmt-topbar">
-        <Brand />
-        <div className="mmt-topbar-right">
-          <span className="mmt-conn" data-state={conn}>
-            <span className="mmt-conn-dot" />
-            {conn === 'connected' ? 'Live' : conn === 'error' ? 'Offline' : 'Connecting…'}
-          </span>
-          <button className="mmt-newsearch" type="button" onClick={reset}>
-            New search
-          </button>
-        </div>
+        <Brand onClick={reset} />
+        <span className="mmt-conn" data-state={conn}>
+          <span className="mmt-conn-dot" />
+          {conn === 'connected' ? 'Live' : conn === 'error' ? 'Offline' : 'Connecting…'}
+        </span>
       </header>
 
       {conn === 'error' && (
@@ -144,17 +112,20 @@ export default function Concierge() {
               setCreds(null);
             }}
           >
-            <RoomAudioRenderer />
+            <RoomAudioRenderer volume={speakerMuted ? 0 : 1} />
             <StartAudio label="Tap to enable sound" className="mmt-startaudio" />
-            <div className="mmt-feedwrap">
-              <Conversation agentName={AGENT} connecting={conn !== 'connected'} />
+            <div className="mmt-cockpit">
+              <Stage connecting={conn !== 'connected'} />
+              <Transcript agentName={AGENT} />
             </div>
             <footer className="mmt-dock">
-              <Visualizer />
               <Composer
                 pending={pending}
                 ready={conn === 'connected'}
                 onPendingSent={() => setPending(null)}
+                speakerMuted={speakerMuted}
+                onToggleSpeaker={() => setSpeakerMuted((m) => !m)}
+                onDisconnect={reset}
               />
             </footer>
           </LiveKitRoom>
@@ -166,7 +137,6 @@ export default function Concierge() {
           <div className="mmt-connecting">
             <span className="mmt-spinner" aria-hidden="true" />
             <p>Connecting you to your concierge…</p>
-            {pending && <p className="mmt-connecting-msg">“{pending}”</p>}
           </div>
         </div>
       )}
@@ -174,9 +144,19 @@ export default function Concierge() {
   );
 }
 
-function Brand() {
+const MicGlyph = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" width="20" height="20">
+    <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V22h2v-3.08A7 7 0 0 0 19 12h-2Z" />
+  </svg>
+);
+
+function Brand({ onClick }: { onClick?: () => void }) {
+  const Tag = onClick ? 'button' : 'div';
   return (
-    <div className="mmt-brand">
+    <Tag
+      className="mmt-brand"
+      {...(onClick ? { type: 'button', onClick, title: 'End session and start over' } : {})}
+    >
       <span className="mmt-brand-mark" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
           <path d="M2 16.5 21 8c1-.45 1.6.9.7 1.6l-6.4 5 .5 6.2c.06.7-.8 1-1.2.4l-3-4.3-6.8 1.9c-1 .3-1.6-1-.8-1.7l4.2-3.6-6-1.1c-.9-.16-1-1.4-.1-1.6Z" fill="currentColor"/>
@@ -185,6 +165,6 @@ function Brand() {
       <span className="mmt-brand-name">
         MakeMy<span className="mmt-brand-accent">Trip</span>
       </span>
-    </div>
+    </Tag>
   );
 }
