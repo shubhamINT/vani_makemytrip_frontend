@@ -29,12 +29,12 @@ export default class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="vw-error-ui">
-          <div className="vw-error-icon">!</div>
-          <p className="vw-error-heading">Something went wrong</p>
-          <p className="vw-error-detail">{this.state.error?.message}</p>
-          <button className="vw-btn vw-error-retry" onClick={this.handleReset}>
-            Try Again
+        <div className="mmt-crash">
+          <div className="mmt-crash-icon">!</div>
+          <p className="mmt-crash-heading">Something went wrong</p>
+          <p className="mmt-crash-detail">{this.state.error?.message}</p>
+          <button className="mmt-crash-retry" onClick={this.handleReset}>
+            Start over
           </button>
         </div>
       );

@@ -1,5 +1,5 @@
-import Widget from './widget/Widget';
+import Concierge from './app/Concierge';
 
 export default function App() {
-  return <Widget />;
+  return <Concierge />;
 }

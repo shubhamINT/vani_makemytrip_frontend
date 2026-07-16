@@ -1,130 +1,62 @@
-# Vaani — LiveKit Voice Agent Widget
+# MakeMyTrip — AI Travel Concierge
 
-An embeddable voice-agent widget (React + Vite) that you can drop into **any**
-website. It connects to your LiveKit backend agent for voice + text chat and
-renders OpenUI generative UI cards inline.
+A full-page conversational travel site (React + Vite). The user talks (voice or
+text) to a LiveKit backend agent; the agent renders flights, hotels and trips as
+**OpenUI** cards inline and can book them — all inside the conversation.
 
-## Project Structure
+Not a widget. No iframe, no FAB. It is the whole site.
+
+## Project structure
 
 ```
 src/
-├── main.tsx               # React entry point
-├── App.tsx                # Root component — renders <Widget />
-├── index.css              # Global resets, transparent bg
-└── widget/                # All UI lives here
-    ├── Widget.tsx         # Orchestrator: state machine, token fetch, LiveKitRoom
-    ├── Transcript.tsx     # Unified chat feed: messages + transcriptions + OpenUI cards
-    ├── Visualizer.tsx     # LiveKit BarVisualizer + voice-assistant state label
-    ├── Controls.tsx       # Text input, mic toggle, end-call button
-    ├── ErrorBoundary.tsx  # Catches render errors, shows retry UI
-    ├── useToken.ts        # Token fetch + response parsing from backend
-    ├── useToken.check.ts  # Assertion tests for parseTokenResponse
-    └── widget.css         # All component styles (single file, vw- namespace)
-
-public/
-├── embed.js               # Self-contained embed script (recommended)
-└── embed-test.html        # Demo page showing both embed methods
+├── main.tsx                # React entry point
+├── App.tsx                 # renders <Concierge />
+├── index.css               # theme tokens + full-page background
+└── app/
+    ├── Concierge.tsx       # shell: hero → conversation, first-message connect, LiveKitRoom
+    ├── Conversation.tsx    # feed: chat bubbles + transcriptions + OpenUI result panels; booking round-trip
+    ├── Composer.tsx        # sticky composer: text + mic; auto-sends the buffered first message
+    ├── Visualizer.tsx      # voice-state pill (listening / thinking / speaking)
+    ├── ErrorBoundary.tsx   # render-error fallback
+    ├── useToken.ts         # token fetch + response parsing
+    ├── useToken.check.ts   # assertions for parseTokenResponse
+    └── site.css            # all styles (mmt- namespace, light airy horizon theme)
 ```
 
-## Controls
-- **FAB button** — floating action button (bottom-right); click to fetch a token and connect.
-- **Mute / Unmute** — toggles your microphone.
-- **Text input** — type a message to the agent.
-- **End** — disconnects.
+## How it works
+
+- **Hero** — user lands on a headline + starter prompts + an ask box. Nothing connects yet.
+- **First ask** — on the first message/starter, the app fetches a token, joins the
+  LiveKit room, and sends that first message once connected.
+- **Conversation** — plain chat renders as light bubbles; anything the agent streams on
+  the `ui.render` topic renders as a distinct **boarding-pass result panel** (hotels,
+  flights, tickets). The two never blur.
+- **Booking** — "Book" buttons inside rendered cards send the action back to the agent as
+  a normal chat message (or open a URL), so the agent can confirm and complete the booking.
+
+Two audience docs:
+- [`FRONTEND_AGENT.md`](./FRONTEND_AGENT.md) — how the browser connects and renders.
+- [`BACKEND_AGENT.md`](./BACKEND_AGENT.md) — **the contract the backend agent must satisfy** (hand this to the backend agent).
 
 ## Setup
 
 ```bash
 bun install
 cp .env.example .env    # set VITE_TOKEN_ENDPOINT to your backend token URL
-bun dev
+bun dev                 # http://localhost:5173
 ```
 
-The frontend calls your token endpoint as a POST with JSON body:
-```json
-{ "agent_name": "voice-agent" }
-```
-Expected response: `{ "token": "<jwt>", "url": "wss://your-livekit-host" }`
+Env (`.env`):
 
-Edit `src/widget/useToken.ts` if your endpoint's shape differs (one place).
-
-## Embed in another site
-
-Two approaches — pick the one that fits your host page.
-
-### A — Script embed (recommended, no CSS/JS work)
-
-Include one `<script>` tag. The widget appears as a floating FAB at bottom-right
-and expands to a full chat panel when active. Sizing is automatic.
-
-```html
-<script src="https://your-deploy-url/embed.js"></script>
-```
-
-For a custom deployment URL:
-```html
-<script src="https://your-deploy-url/embed.js" data-src="https://your-domain.com"></script>
-```
-
-### B — Simple `<iframe>` tag (no JS)
-
-Works everywhere. Width/height are fixed, so the FAB sits in the bottom-right
-corner of the iframe with transparent space above.
-
-```html
-<iframe src="https://your-deploy-url/"
-  allow="microphone; autoplay"
-  title="Vaani Voice Assistant"
-  style="
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    border: 0;
-    width: 420px;
-    height: 750px;
-    z-index: 2147483647;
-    background: transparent;
-  ">
-</iframe>
-```
-
-### Requirements
-
-| Requirement | Detail |
+| Var | Purpose |
 |---|---|
-| `allow="microphone; autoplay"` | **Required** on the iframe — without it the browser blocks mic access and audio playback |
-| CORS | Your token endpoint must include `Access-Control-Allow-Origin: *` (or your host origin) |
-| `sandbox` | If your host page uses a restrictive `sandbox`, include `allow-scripts allow-same-origin allow-popups` |
-
-## Embed API (postMessage)
-
-The widget communicates with the host page via `window.postMessage`.
-
-### Widget → Host
-
-| Event | When | Payload |
-|---|---|---|
-| `vani:ready` | Widget loaded and initialised | `{ type: 'vani:ready' }` |
-| `vani:resize` | Panel opened or closed | `{ type: 'vani:resize', mode: 'collapsed' \| 'open' }` |
-| `vani:state` | Connection state changed | `{ type: 'vani:state', status: 'idle' \| 'connecting' \| 'connected' \| 'error' }` |
-
-### Host → Widget
-
-| Command | Payload | Effect |
-|---|---|---|
-| `vani:start` | `{ type: 'vani:start' }` | Initiates token fetch and connection |
-| `vani:end` | `{ type: 'vani:end' }` | Disconnects and resets to idle |
-
-## Local demo
-
-```bash
-bun dev
-```
-
-Open `http://localhost:5173/embed-test.html` to see both embed methods in action.
+| `VITE_TOKEN_ENDPOINT` | POST endpoint that mints a LiveKit token + dispatches the agent |
+| `VITE_LIVEKIT_URL` | optional fallback if the token response omits `url` |
+| `VITE_AGENT_NAME` | agent/persona name (default shown in UI). Currently `Vani-makemytrip` |
 
 ## Build
 
 ```bash
-bun run build   # tsc + vite → dist/  (deploy dist/ anywhere static)
+bun run build   # tsc -b && vite build → dist/  (deploy dist/ as a static site)
 ```
