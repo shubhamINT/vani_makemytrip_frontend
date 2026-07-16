@@ -55,6 +55,26 @@ Rules:
 Line-oriented, assignment-based. `root` must be a `Card`. Positional args, one
 statement per line. Below are the core travel patterns — copy the shapes.
 
+> **Making it premium.** The frontend now themes `openuiChatLibrary` with the MakeMyTrip
+> brand (coral accent, Bricolage/Inter fonts, on-brand chart palette). To match that polish,
+> the agent should:
+> - **Generate the system prompt, don't hand-write it.** Build render instructions from
+>   `openuiChatLibrary.prompt(openuiChatPromptOptions)` so signatures stay valid and current.
+> - **Validate every render before streaming.** Run
+>   `createParser(openuiChatLibrary.toJSONSchema(), "Card").parse(src)`, check
+>   `result.meta.errors`, and feed any errors back to the model to self-correct. Never stream
+>   unparsed lang.
+> - **Use real image URLs** from the search/tool results (never placeholders) — `Image`/`Carousel`
+>   cards carry the premium look.
+> - **Reach for richer components:** `TagBlock` for amenities/fare classes, `Callout("success", …)`
+>   for confirmations, `Steps` for itineraries, `SectionBlock` for grouped detail.
+> - **End every result with a `FollowUpBlock`** so the conversation keeps moving.
+> - **Make everything actionable:** each item gets a `Button` with a self-sufficient
+>   `@ToAssistant(...)` string; payment / e-tickets use `@OpenUrl(...)`.
+> - **Layout:** results stack full-width, so tables and carousels render fine — but keep each
+>   `Card` to one clear job and prefer a `Carousel` over wide multi-column grids.
+> - **Charts** (`LineChart`/`BarChart` for price trends) inherit the on-brand palette automatically.
+
 ### Hotel results (carousel of cards with images, tags, price, Book)
 ```text
 root = Card([head, note, hotels, follow])

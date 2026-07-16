@@ -7,6 +7,7 @@ interface UIRender {
   id: string;
   renderId: number;
   content: string;
+  streaming: boolean;
 }
 
 /**
@@ -20,13 +21,37 @@ export default function Stage({ connecting }: { connecting: boolean }) {
   const [renders, setRenders] = useState<UIRender[]>([]);
   const [minimized, setMinimized] = useState<Record<number, boolean>>({});
   const idRef = useRef(0);
+  const seq = useRef(new Map<string, number>());
   const stageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // openui-lang is streamed line-by-line: read incrementally and re-render
+    // each chunk. readAll() would block until close and kill the live build.
+    const upsert = (streamId: string, content: string, streaming: boolean) => {
+      let renderId = seq.current.get(streamId);
+      if (renderId === undefined) {
+        renderId = idRef.current++;
+        seq.current.set(streamId, renderId);
+      }
+      const rid = renderId;
+      setRenders((prev) => {
+        const i = prev.findIndex((r) => r.renderId === rid);
+        const next: UIRender = { id: `ui-${rid}`, renderId: rid, content, streaming };
+        if (i === -1) return [...prev, next];
+        const copy = prev.slice();
+        copy[i] = next;
+        return copy;
+      });
+    };
+
     room.registerTextStreamHandler('ui.render', async (reader) => {
-      const text = await reader.readAll();
-      const renderId = idRef.current++;
-      setRenders((prev) => [...prev, { id: `ui-${renderId}`, renderId, content: text }]);
+      const streamId = reader.info.id;
+      let text = '';
+      for await (const chunk of reader) {
+        text += chunk;
+        upsert(streamId, text, true);
+      }
+      upsert(streamId, text, false);
     });
     return () => room.unregisterTextStreamHandler('ui.render');
   }, [room]);
@@ -107,8 +132,12 @@ export default function Stage({ connecting }: { connecting: boolean }) {
               <Renderer
                 response={e.content}
                 library={openuiChatLibrary}
+                isStreaming={e.streaming}
                 onAction={handleAction}
-                onError={(errors) => console.error('OpenUI render error:', errors)}
+                onError={(errors) => {
+                  // Partial/forward-ref errors are expected while streaming.
+                  if (!e.streaming) console.error('OpenUI render error:', errors);
+                }}
               />
             </div>
           )}
