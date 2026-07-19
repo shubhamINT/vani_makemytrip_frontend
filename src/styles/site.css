@@ -31,17 +31,13 @@
   border-bottom: none;
   background: transparent;
   backdrop-filter: none;
-  justify-content: flex-start;
+  justify-content: space-between;
 }
 
 .mmt-brand {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 19px;
-  letter-spacing: -0.02em;
+  gap: 12px;
   /* also renders as a <button> (click = new search) — reset button chrome */
   border: none;
   background: transparent;
@@ -49,18 +45,46 @@
   color: inherit;
 }
 button.mmt-brand { cursor: pointer; }
-button.mmt-brand:hover .mmt-brand-name { color: var(--coral-ink); }
-.mmt-brand-mark {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  color: #fff;
-  background: linear-gradient(135deg, var(--coral) 0%, #ff9166 100%);
-  box-shadow: 0 4px 12px rgba(255, 107, 74, 0.35);
+button.mmt-brand:hover .mmt-brand-logo { opacity: 0.85; }
+.mmt-brand-logo {
+  height: 28px;
+  width: auto;
+  display: block;
+  transition: opacity 0.15s;
 }
-.mmt-brand-accent { color: var(--coral); }
+/* Myra concierge badge next to the logo */
+.mmt-myra-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px 4px 9px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4338ca;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+}
+/* Login / Sign up — hero topbar, right side */
+.mmt-login-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s, transform 0.12s;
+}
+.mmt-login-btn:hover { border-color: var(--sky); transform: translateY(-1px); }
+.mmt-login-btn svg { color: var(--muted); }
 
 .mmt-conn {
   display: inline-flex;
@@ -84,15 +108,25 @@ button.mmt-brand:hover .mmt-brand-name { color: var(--coral-ink); }
 .mmt-hero {
   flex: 1 1 auto;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  gap: 14px;
-  padding: clamp(24px, 6vh, 72px) 20px 64px;
-  max-width: 720px;
-  margin: 0 auto;
+  padding: clamp(24px, 5vh, 56px) clamp(20px, 5vw, 56px) 56px;
   width: 100%;
+}
+.mmt-hero-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 480px) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(24px, 5vw, 72px);
+  width: 100%;
+  max-width: 1180px;
+}
+.mmt-hero-lead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  text-align: left;
 }
 .mmt-eyebrow {
   margin: 0;
@@ -151,7 +185,7 @@ button.mmt-brand:hover .mmt-brand-name { color: var(--coral-ink); }
   position: absolute;
   inset: -6px;
   border-radius: 50%;
-  background: conic-gradient(from 0deg, var(--coral), var(--sky), var(--coral));
+  background: conic-gradient(from 0deg, var(--sky), var(--teal), var(--sky));
   opacity: 0.85;
   animation: mmt-swirl 5s linear infinite;
   z-index: -1;
@@ -165,11 +199,11 @@ button.mmt-brand:hover .mmt-brand-name { color: var(--coral-ink); }
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: linear-gradient(150deg, var(--coral) 0%, #ff8a5f 100%);
-  box-shadow: 0 14px 34px rgba(255, 107, 74, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  background: var(--hero-orb);
+  box-shadow: 0 14px 34px rgba(34, 211, 165, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 19px;
+  font-size: 18px;
   letter-spacing: -0.01em;
   transition: transform 0.15s ease;
 }
@@ -180,6 +214,152 @@ button.mmt-brand:hover .mmt-brand-name { color: var(--coral-ink); }
   margin: 14px 0 0;
   font-size: 13px;
   color: var(--faint);
+}
+
+/* ── Starter chips — one soft rail, colored icon tiles ── */
+.mmt-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 24px;
+  padding: 10px 12px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(8px);
+}
+.mmt-chips-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 6px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.mmt-chips-label::before {
+  content: '🧭';
+  font-size: 14px;
+}
+.mmt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 14px 7px 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s, transform 0.12s;
+}
+.mmt-chip:hover {
+  background: var(--surface);
+  border-color: var(--line);
+  transform: translateY(-1px);
+}
+.mmt-chip-emoji {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--chip-tint, var(--paper-2));
+  font-size: 15px;
+}
+.mmt-chip-title {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--chip-ink, var(--ink));
+  letter-spacing: -0.01em;
+}
+.mmt-chip-sub {
+  display: block;
+  font-size: 11px;
+  color: var(--faint);
+}
+
+/* ── Globe — Three.js canvas, edges masked into the sky ── */
+.mmt-globe-wrap {
+  position: relative;
+  width: 100%;
+  height: min(62vh, 580px);
+  min-width: 0;
+  isolation: isolate;
+}
+.mmt-globe-canvas {
+  position: absolute;
+  inset: 0;
+  /* soft-edge fade so the sphere melts into the page, not a hard ball */
+  -webkit-mask: radial-gradient(circle at 50% 50%, #000 66%, transparent 82%);
+  mask: radial-gradient(circle at 50% 50%, #000 66%, transparent 82%);
+}
+/* rainbow ribbon sweeping past the globe */
+.mmt-ribbon {
+  position: absolute;
+  z-index: -1;
+  top: 4%;
+  right: -6%;
+  width: 78%;
+  height: 34%;
+  border-radius: 50%;
+  background: conic-gradient(from 200deg at 50% 50%, transparent 0deg, #a7f3d0 40deg, #fde68a 90deg, #7dd3fc 140deg, transparent 200deg);
+  filter: blur(26px);
+  opacity: 0.7;
+  transform: rotate(-18deg);
+}
+.mmt-cloud {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 999px;
+  filter: blur(4px);
+  box-shadow: 22px 6px 0 -4px rgba(255, 255, 255, 0.9), -20px 8px 0 -6px rgba(255, 255, 255, 0.85);
+}
+.mmt-cloud--1 { width: 90px; height: 26px; top: 22%; right: 6%; }
+.mmt-cloud--2 { width: 70px; height: 20px; bottom: 20%; right: 26%; opacity: 0.85; }
+.mmt-cloud--3 { width: 56px; height: 16px; bottom: 30%; left: 4%; opacity: 0.7; }
+/* hollow ring markers */
+.mmt-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.mmt-pin-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: transparent;
+  border: 2px solid var(--coral);
+  box-shadow: 0 0 0 3px rgba(255, 107, 74, 0.14);
+  animation: mmt-pulse 2.6s ease-in-out infinite;
+  flex: 0 0 auto;
+}
+.mmt-pin:nth-child(3n) .mmt-pin-dot {
+  border-color: var(--sky);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.16);
+}
+.mmt-pin:nth-child(4n) .mmt-pin-dot {
+  background: var(--sky);
+  border-color: var(--sky);
+}
+.mmt-pin-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.78);
+  padding: 1px 8px;
+  border-radius: 999px;
+  backdrop-filter: blur(2px);
 }
 
 /* ── Feed ── */
@@ -198,14 +378,12 @@ button.mmt-brand:hover .mmt-brand-name { color: var(--coral-ink); }
   background: var(--line);
 }
 
-/* Main stage — where generative UI (ui.render) stacks */
+/* Main stage — dashboard: sticky tab bar + scrolling content */
 .mmt-stage {
-  overflow-y: auto;
+  overflow: hidden;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 28px clamp(16px, 3.5vw, 40px) 24px;
   background:
     radial-gradient(120% 55% at 50% -10%, var(--sky-soft) 0%, transparent 55%),
     var(--paper);
@@ -238,13 +416,72 @@ button.mmt-brand:hover .mmt-brand-name { color: var(--coral-ink); }
 }
 .mmt-stage-sub { margin: 0; font-size: 14px; max-width: 320px; }
 
-/* Transcript rail — the running conversation, compact */
-.mmt-rail {
-  overflow: hidden;
+/* Right rail column: trip summary pinned on top, transcript scrolls below */
+.mmt-rail-col {
   min-height: 0;
   display: flex;
   flex-direction: column;
   background: var(--surface);
+}
+
+/* Trip summary — pinned card fed by the agent's trip.summary stream */
+.mmt-tripsum {
+  flex: 0 0 auto;
+  padding: 16px 18px 14px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(180deg, var(--sky-soft), transparent);
+  animation: mmt-rise 0.3s ease both;
+}
+.mmt-tripsum-head { margin-bottom: 10px; }
+.mmt-tripsum-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.mmt-tripsum-grid { margin: 0; display: flex; flex-direction: column; gap: 7px; }
+.mmt-tripsum-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.mmt-tripsum-row dt { font-size: 12.5px; color: var(--muted); }
+.mmt-tripsum-row dd {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: right;
+}
+.mmt-weather {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.mmt-weather-icon { font-size: 26px; line-height: 1; }
+.mmt-weather-temp {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--ink);
+}
+.mmt-weather-label { display: block; font-size: 11.5px; color: var(--muted); }
+
+/* Transcript rail — the running conversation, compact */
+.mmt-rail {
+  flex: 1 1 auto;
+  overflow: hidden;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 .mmt-rail-head {
   flex: 0 0 auto;
@@ -293,85 +530,110 @@ button.mmt-brand:hover .mmt-brand-name { color: var(--coral-ink); }
 }
 .mmt-rail-line.is-user .mmt-rail-text { color: var(--muted); }
 
-/* Rendered results — the boarding-pass panel, full width, unmistakably NOT a chat bubble */
-.mmt-result {
-  position: relative;
-  align-self: stretch;
+/* ── Dashboard tab bar ── */
+.mmt-tabs {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 10px clamp(16px, 3.5vw, 40px) 0;
+  border-bottom: 1px solid var(--line);
+  background: rgba(247, 249, 252, 0.85);
+  backdrop-filter: blur(8px);
+}
+.mmt-tabs::-webkit-scrollbar { display: none; }
+.mmt-tab {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--muted);
+  padding: 8px 14px 12px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.mmt-tab svg { opacity: 0.8; }
+.mmt-tab:hover { color: var(--ink); }
+.mmt-tab.is-active { color: var(--coral-ink); border-bottom-color: var(--coral); }
+.mmt-tab.is-active svg { opacity: 1; }
+
+/* ── Dashboard content (scrolls) ── */
+.mmt-dash-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px clamp(16px, 3.5vw, 40px) 28px;
+}
+.mmt-dash-card {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  padding: 18px clamp(14px, 2vw, 22px) 20px;
   animation: mmt-rise 0.35s ease both;
 }
-.mmt-result::before {
-  /* coral boarding-pass edge */
-  content: '';
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 4px;
-  background: linear-gradient(180deg, var(--coral), var(--sky));
-}
-.mmt-result::after {
-  /* ticket notch */
-  content: '';
-  position: absolute;
-  left: -8px;
-  top: 50%;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  transform: translateY(-50%);
-  background: var(--paper);
-  border: 1px solid var(--line);
-}
-.mmt-result-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 14px 12px 20px;
-  border-bottom: 1px dashed var(--line);
-  background: linear-gradient(180deg, rgba(255, 241, 236, 0.5), transparent);
-}
-.mmt-result-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.mmt-dash-title {
+  margin: 0 0 12px;
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--coral-ink);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
-.mmt-result-chip::before {
-  content: '';
-  width: 7px;
-  height: 7px;
-  border-radius: 2px;
-  background: var(--coral);
-}
-.mmt-result-tools { display: flex; gap: 4px; }
-.mmt-icon-btn {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border: none;
-  background: transparent;
-  color: var(--faint);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-.mmt-icon-btn:hover { background: var(--paper-2); color: var(--ink); }
-.mmt-result-body { padding: 6px 8px 10px; }
 
-/* Let OpenUI's own cards sit flat inside our panel */
-.mmt-result-body .openui-card,
-.mmt-result-body [class*='card'] {
-  box-shadow: none;
+/* ── OpenUI card polish — make streamed hotels read like the reference cards ── */
+/* Carousel = horizontal scroll-snap row with a peek of the next card */
+.mmt-dash-card [class*='carousel'] {
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  gap: 16px;
 }
+.mmt-dash-card [class*='carousel'] > * {
+  scroll-snap-align: start;
+  flex: 0 0 clamp(230px, 30%, 280px);
+}
+/* Each hotel/flight Card: own surface, soft border, hover lift, image top-rounded */
+.mmt-dash-card .openui-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.mmt-dash-card .openui-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+/* Full-bleed image at the top of each card */
+.mmt-dash-card .openui-card img {
+  width: 100%;
+  height: 148px;
+  object-fit: cover;
+}
+/* Book / View Rooms → compact blue pill, never wrapping */
+.mmt-dash-card .openui-button-base-primary {
+  border-radius: 999px;
+  white-space: nowrap;
+  background: linear-gradient(135deg, var(--sky) 0%, #2563eb 100%);
+  border-color: transparent;
+}
+.mmt-dash-card .openui-button-base-primary:hover {
+  filter: brightness(1.05);
+}
+/* Follow-up prompts read as quiet links, not a heavy list */
+.mmt-dash-card .openui-list-item { border-color: var(--line); }
 
 /* ── Connecting / crash states ── */
 .mmt-connecting {
@@ -483,8 +745,8 @@ button.mmt-brand:hover .mmt-brand-name { color: var(--coral-ink); }
 .mmt-voicecluster[data-state='listening'] { color: var(--sky); }
 .mmt-voicecluster[data-state='speaking'] { color: var(--coral-ink); }
 .mmt-voice-bars {
-  width: 30px;
-  height: 20px;
+  width: 48px;
+  height: 22px;
   margin-left: 2px;
   --lk-fg: currentColor;
   color: inherit;
@@ -620,13 +882,17 @@ button.mmt-brand:hover .mmt-brand-name { color: var(--coral-ink); }
   .mmt-stage-orb,
   .mmt-rail-line,
   .mmt-connect-ring,
-  .mmt-result { animation: none; }
+  .mmt-pin-dot,
+  .mmt-dash-card { animation: none; }
 }
 
 /* Stack the rail under the stage on narrow screens */
 @media (max-width: 860px) {
   .mmt-cockpit { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
-  .mmt-rail { max-height: 40vh; border-top: 1px solid var(--line); }
+  .mmt-rail-col { max-height: 44vh; border-top: 1px solid var(--line); }
+  .mmt-hero-inner { grid-template-columns: 1fr; }
+  .mmt-hero-lead { align-items: center; text-align: center; }
+  .mmt-globe-wrap { order: -1; height: min(46vh, 360px); }
 }
 
 @media (max-width: 560px) {

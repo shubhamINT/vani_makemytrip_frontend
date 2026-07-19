@@ -34,7 +34,7 @@ export const mmtTheme: ThemeProps = {
     // chat bubble (if the chat lib renders one)
     chatUserResponseBg: 'var(--coral)',
     chatUserResponseText: '#ffffff',
-    // radius → match .mmt-result (16 / 22px)
+    // radius → match .mmt-dash-card (16 / 22px)
     radiusM: '14px',
     radiusL: 'var(--radius)',
     radiusXl: 'var(--radius-lg)',

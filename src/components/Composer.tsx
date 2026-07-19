@@ -5,6 +5,7 @@ import {
   useVoiceAssistant,
   BarVisualizer,
 } from '@livekit/components-react';
+import { Track } from 'livekit-client';
 
 const MicOn = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V22h2v-3.08A7 7 0 0 0 19 12h-2Z"/></svg>
@@ -75,21 +76,18 @@ export default function Composer({
     await send(msg);
   };
 
+  // Waveform source: agent audio while it speaks, the user's own mic otherwise
+  // (so the bars move both ways — "listening" as well as "speaking").
+  const micRef =
+    localParticipant && isMicrophoneEnabled
+      ? { participant: localParticipant, source: Track.Source.Microphone }
+      : undefined;
+  const vizTrack = state === 'speaking' && audioTrack && !speakerMuted ? audioTrack : micRef;
+
   return (
     <form className="mmt-composer" onSubmit={submit}>
-      {/* Voice controls + live bars, integrated in the bar */}
+      {/* Voice controls + live bars: speaker → mic → state → waveform */}
       <div className="mmt-voicecluster" data-state={state}>
-        <button
-          type="button"
-          className={`mmt-ctl mmt-ctl--mic${isMicrophoneEnabled ? ' is-on' : ' is-muted'}`}
-          onClick={toggleMic}
-          disabled={!ready}
-          aria-pressed={!isMicrophoneEnabled}
-          aria-label={isMicrophoneEnabled ? 'Mute microphone' : 'Unmute microphone'}
-          title={isMicrophoneEnabled ? 'Mute mic' : 'Unmute mic'}
-        >
-          {isMicrophoneEnabled ? <MicOn /> : <MicOff />}
-        </button>
         <button
           type="button"
           className={`mmt-ctl mmt-ctl--spk${speakerMuted ? ' is-muted' : ' is-on'}`}
@@ -101,17 +99,28 @@ export default function Composer({
         >
           {speakerMuted ? <SpeakerOff /> : <SpeakerOn />}
         </button>
-        {audioTrack && !speakerMuted && (
-          <BarVisualizer
-            state={state}
-            trackRef={audioTrack}
-            barCount={5}
-            options={{ minHeight: 6 }}
-            className="mmt-voice-bars"
-          />
-        )}
+        <button
+          type="button"
+          className={`mmt-ctl mmt-ctl--mic${isMicrophoneEnabled ? ' is-on' : ' is-muted'}`}
+          onClick={toggleMic}
+          disabled={!ready}
+          aria-pressed={!isMicrophoneEnabled}
+          aria-label={isMicrophoneEnabled ? 'Mute microphone' : 'Unmute microphone'}
+          title={isMicrophoneEnabled ? 'Mute mic' : 'Unmute mic'}
+        >
+          {isMicrophoneEnabled ? <MicOn /> : <MicOff />}
+        </button>
         {ready && state && state !== 'disconnected' && (
           <span className="mmt-voice-label">{STATE_LABEL[state] ?? ''}</span>
+        )}
+        {ready && vizTrack && (
+          <BarVisualizer
+            state={state}
+            trackRef={vizTrack}
+            barCount={7}
+            options={{ minHeight: 8 }}
+            className="mmt-voice-bars"
+          />
         )}
       </div>
 

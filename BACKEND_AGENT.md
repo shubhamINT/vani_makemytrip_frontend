@@ -40,6 +40,17 @@ Response (envelope; flat `{token,url}` also accepted):
 | both | `lk.transcription` | reserved | live captions (LiveKit-managed, do not write) |
 | user → agent | `lk.chat` | text | typed messages **and booking actions** (see §4) |
 | agent → user | `ui.render` | raw openui-lang text | a result panel to display |
+| agent → user | `trip.summary` | JSON | pins the trip summary card in the side panel |
+
+`ui.render` streams carry two **attributes** the dashboard uses:
+- `tab` — one of `overview / hotels / flights / experiences / food / itinerary / budget / visa` (which dashboard tab to file the render under; untagged → overview).
+- `title` — a short heading shown above the render (e.g. `"Hotels in Kolkata"`).
+
+`trip.summary` is a single JSON blob, streamed whenever the trip's shape is known
+or changes: `{ "destination", "dates", "duration", "travelers", "budget" }` — all
+short strings. `destination` should be a clean place name; the frontend fetches live
+weather for it (Open-Meteo). Example:
+`{"destination":"Kolkata","dates":"24–26 May 2025","duration":"2 nights / 3 days","travelers":"2 adults","budget":"₹28,000 – ₹32,000"}`
 
 Rules:
 - Greet first with a short spoken line.
