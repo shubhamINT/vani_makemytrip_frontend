@@ -8,19 +8,24 @@ Not a widget. No iframe, no FAB. It is the whole site.
 
 ## Project structure
 
+Organized by role — UI in `components/`, data/logic in `hooks/`, styling in `styles/`.
+
 ```
 src/
 ├── main.tsx                # React entry point
-├── App.tsx                 # renders <Concierge />
-├── index.css               # theme tokens + full-page background
-└── app/
-    ├── Concierge.tsx       # shell: hero → conversation, first-message connect, LiveKitRoom
-    ├── Conversation.tsx    # feed: chat bubbles + transcriptions + OpenUI result panels; booking round-trip
-    ├── Composer.tsx        # sticky composer: text + mic; auto-sends the buffered first message
-    ├── Visualizer.tsx      # voice-state pill (listening / thinking / speaking)
-    ├── ErrorBoundary.tsx   # render-error fallback
-    ├── useToken.ts         # token fetch + response parsing
-    ├── useToken.check.ts   # assertions for parseTokenResponse
+├── App.tsx                 # ThemeProvider + <Concierge />
+├── theme.ts                # OpenUI theme tokens (mmtTheme)
+├── index.css               # global theme tokens + full-page background
+├── components/
+│   ├── Concierge.tsx       # shell: hero → live, connect, LiveKitRoom
+│   ├── Stage.tsx           # voice-state visualizer
+│   ├── Transcript.tsx      # conversation feed + OpenUI result panels
+│   ├── Composer.tsx        # dock: text + mic, speaker/disconnect controls
+│   └── ErrorBoundary.tsx   # render-error fallback
+├── hooks/
+│   ├── useToken.ts         # token fetch + response parsing
+│   └── useToken.check.ts   # assertions for parseTokenResponse
+└── styles/
     └── site.css            # all styles (mmt- namespace, light airy horizon theme)
 ```
 

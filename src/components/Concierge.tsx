@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { LiveKitRoom, RoomAudioRenderer, StartAudio } from '@livekit/components-react';
 import '@livekit/components-styles';
-import { fetchToken, type TokenResult } from './useToken';
+import { fetchToken, type TokenResult } from '../hooks/useToken';
 import ErrorBoundary from './ErrorBoundary';
 import Stage from './Stage';
 import Transcript from './Transcript';
 import Composer from './Composer';
-import './site.css';
+import '../styles/site.css';
 
 type ConnState = 'idle' | 'connecting' | 'connected' | 'error';
 

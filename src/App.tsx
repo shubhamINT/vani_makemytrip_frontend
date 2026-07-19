@@ -1,6 +1,6 @@
 import { ThemeProvider } from '@openuidev/react-ui';
-import Concierge from './app/Concierge';
-import { mmtTheme } from './app/theme';
+import Concierge from './components/Concierge';
+import { mmtTheme } from './theme';
 
 export default function App() {
   return (
