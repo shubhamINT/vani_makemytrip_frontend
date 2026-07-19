@@ -59,10 +59,10 @@ button.mmt-brand:hover .mmt-brand-logo { opacity: 0.85; }
   gap: 6px;
   padding: 4px 11px 4px 9px;
   border-radius: 999px;
-  background: #eef2ff;
-  color: #4338ca;
+  background: var(--coral-soft);
+  color: var(--coral-ink);
   font-family: var(--font-display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 11.5px;
   letter-spacing: 0.06em;
 }
@@ -83,7 +83,7 @@ button.mmt-brand:hover .mmt-brand-logo { opacity: 0.85; }
   box-shadow: var(--shadow-sm);
   transition: border-color 0.15s, transform 0.12s;
 }
-.mmt-login-btn:hover { border-color: var(--sky); transform: translateY(-1px); }
+.mmt-login-btn:hover { border-color: var(--coral); transform: translateY(-1px); }
 .mmt-login-btn svg { color: var(--muted); }
 
 .mmt-conn {
@@ -104,76 +104,92 @@ button.mmt-brand:hover .mmt-brand-logo { opacity: 0.85; }
 .mmt-conn[data-state='connecting'] .mmt-conn-dot { background: var(--sky); animation: mmt-pulse 1.2s ease-in-out infinite; }
 .mmt-conn[data-state='error'] .mmt-conn-dot { background: var(--danger); }
 
-/* ── Hero ── */
+/* ── Hero — full-viewport composition, globe bleeding off top-right ── */
+.mmt--hero {
+  position: relative;
+  height: 100dvh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle, rgba(231, 51, 47, 0.055) 1px, transparent 1.5px) 0 0 / 18px 18px,
+    var(--paper);
+}
+.mmt--hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%, var(--paper) 42%);
+}
+.mmt--hero .mmt-hero,
+.mmt--hero .mmt-chipbar { position: relative; z-index: 1; }
 .mmt-hero {
   flex: 1 1 auto;
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: clamp(24px, 5vh, 56px) clamp(20px, 5vw, 56px) 56px;
+  min-height: 0;
+  padding: clamp(16px, 4vh, 40px) clamp(20px, 5vw, 64px);
   width: 100%;
-}
-.mmt-hero-inner {
-  display: grid;
-  grid-template-columns: minmax(0, 480px) minmax(0, 1fr);
-  align-items: center;
-  gap: clamp(24px, 5vw, 72px);
-  width: 100%;
-  max-width: 1180px;
+  overflow: visible;
 }
 .mmt-hero-lead {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 14px;
+  max-width: 540px;
   text-align: left;
 }
 .mmt-eyebrow {
   margin: 0;
   font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  font-weight: 700;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: var(--coral-ink);
+  color: var(--coral);
 }
 .mmt-hero-title {
   margin: 0;
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(44px, 9vw, 88px);
-  line-height: 0.98;
+  font-weight: 800;
+  font-size: clamp(44px, 7.5vw, 84px);
+  line-height: 1.02;
   letter-spacing: -0.03em;
+  white-space: nowrap;
 }
 .mmt-hero-accent {
   font-style: italic;
-  background: linear-gradient(100deg, var(--coral) 0%, var(--sky) 100%);
+  display: inline-block;
+  /* italic overhang: pad the clip box so the "?" never gets sheared off */
+  padding: 0 0.18em 0.06em 0.02em;
+  margin-right: -0.12em;
+  background: linear-gradient(95deg, #d31028 0%, #e7332f 55%, #ff6a5c 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
-.mmt-horizon {
-  width: min(340px, 70%);
-  height: 4px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, transparent, var(--coral) 30%, var(--sky) 70%, transparent);
-  opacity: 0.9;
-  background-size: 200% 100%;
-  animation: mmt-drift 7s ease-in-out infinite;
-}
 .mmt-hero-sub {
   margin: 4px 0 8px;
-  max-width: 440px;
-  font-size: 17px;
-  line-height: 1.5;
+  font-size: 16.5px;
+  line-height: 1.55;
   color: var(--muted);
 }
 
 /* ── Connect (voice-first hero action) ── */
+.mmt-connect-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 4px;
+  padding: 0 12px;
+}
 .mmt-connect {
   position: relative;
-  margin-top: 14px;
-  width: 148px;
-  height: 148px;
+  margin-top: 18px;
+  width: 116px;
+  height: 116px;
   border: none;
   border-radius: 50%;
   cursor: pointer;
@@ -183,183 +199,192 @@ button.mmt-brand:hover .mmt-brand-logo { opacity: 0.85; }
 }
 .mmt-connect-ring {
   position: absolute;
-  inset: -6px;
+  inset: -9px;
   border-radius: 50%;
-  background: conic-gradient(from 0deg, var(--sky), var(--teal), var(--sky));
-  opacity: 0.85;
-  animation: mmt-swirl 5s linear infinite;
+  background: conic-gradient(from 210deg, #fb923c, #fde68a, #f87171, #fb923c);
+  opacity: 0.9;
+  filter: blur(1px);
+  animation: mmt-swirl 6s linear infinite;
   z-index: -1;
 }
 .mmt-connect-face {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
   width: 100%;
   height: 100%;
   border-radius: 50%;
   background: var(--hero-orb);
-  box-shadow: 0 14px 34px rgba(34, 211, 165, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 18px;
-  letter-spacing: -0.01em;
+  box-shadow: 0 16px 36px rgba(231, 51, 47, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.35);
   transition: transform 0.15s ease;
 }
-.mmt-connect-face svg { width: 26px; height: 26px; }
+.mmt-connect-face svg { width: 34px; height: 34px; }
 .mmt-connect:hover .mmt-connect-face { transform: scale(1.04); }
 .mmt-connect:active .mmt-connect-face { transform: scale(0.98); }
+.mmt-connect-label {
+  margin: 16px 0 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+  color: var(--coral-ink);
+}
 .mmt-connect-hint {
-  margin: 14px 0 0;
-  font-size: 13px;
+  margin: 2px 0 0;
+  font-size: 12.5px;
   color: var(--faint);
 }
 
-/* ── Starter chips — one soft rail, colored icon tiles ── */
-.mmt-chips {
+/* ── Chip bar — full-width bottom rail of tinted starter cards ── */
+.mmt-chipbar {
+  flex: 0 0 auto;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-  margin-top: 24px;
-  padding: 10px 12px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.62);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  box-shadow: var(--shadow-sm);
-  backdrop-filter: blur(8px);
+  align-items: stretch;
+  gap: 14px;
+  padding: 16px clamp(20px, 3.5vw, 48px) 20px;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  overflow-x: auto;
+  scrollbar-width: none;
 }
-.mmt-chips-label {
+.mmt-chipbar::-webkit-scrollbar { display: none; }
+.mmt-chipbar-label {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 6px 0 4px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
+  gap: 8px;
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
   white-space: nowrap;
+  margin-right: 10px;
+  letter-spacing: -0.01em;
 }
-.mmt-chips-label::before {
-  content: '🧭';
-  font-size: 14px;
-}
+.mmt-chipbar-label svg { color: var(--coral); flex: 0 0 auto; }
 .mmt-chip {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
-  padding: 7px 14px 7px 8px;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  background: transparent;
+  gap: 11px;
+  flex: 1 1 0;
+  min-width: 168px;
+  padding: 11px 18px;
+  border: 1px solid color-mix(in srgb, var(--chip-ink, var(--ink)) 14%, transparent);
+  border-radius: 15px;
+  background: var(--chip-tint, var(--paper-2));
   cursor: pointer;
   text-align: left;
-  transition: background 0.15s, border-color 0.15s, transform 0.12s;
+  white-space: nowrap;
+  transition: box-shadow 0.15s, transform 0.12s, border-color 0.15s;
 }
 .mmt-chip:hover {
-  background: var(--surface);
-  border-color: var(--line);
-  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--chip-ink, var(--ink)) 36%, transparent);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
 }
-.mmt-chip-emoji {
+.mmt-chip-icon {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  background: var(--chip-tint, var(--paper-2));
-  font-size: 15px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 1px 3px rgba(19, 16, 24, 0.07);
+  color: var(--chip-ink, var(--ink));
+  flex: 0 0 auto;
 }
 .mmt-chip-title {
   display: block;
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 13px;
+  font-weight: 700;
+  font-size: 13.5px;
   color: var(--chip-ink, var(--ink));
   letter-spacing: -0.01em;
 }
 .mmt-chip-sub {
   display: block;
-  font-size: 11px;
-  color: var(--faint);
+  margin-top: 1px;
+  font-size: 11.5px;
+  color: var(--muted);
 }
 
-/* ── Globe — Three.js canvas, edges masked into the sky ── */
+/* ── Globe — Three.js backdrop bleeding off the top-right of the hero ── */
 .mmt-globe-wrap {
-  position: relative;
-  width: 100%;
-  height: min(62vh, 580px);
-  min-width: 0;
+  position: absolute;
+  top: 53%;
+  right: 2%;
+  transform: translateY(-46%);
+  width: min(54vw, 94vh);
+  aspect-ratio: 1;
+  z-index: 0;
+  pointer-events: none;
   isolation: isolate;
 }
 .mmt-globe-canvas {
   position: absolute;
   inset: 0;
-  /* soft-edge fade so the sphere melts into the page, not a hard ball */
-  -webkit-mask: radial-gradient(circle at 50% 50%, #000 66%, transparent 82%);
-  mask: radial-gradient(circle at 50% 50%, #000 66%, transparent 82%);
+  /* sphere edge fades in-shader; this only melts the lower-left toward the copy */
+  -webkit-mask: radial-gradient(circle at 62% 40%, #000 55%, transparent 92%);
+  mask: radial-gradient(circle at 62% 40%, #000 55%, transparent 92%);
 }
-/* rainbow ribbon sweeping past the globe */
-.mmt-ribbon {
+/* gradient ribbon riding the sphere's silhouette (same box as the canvas) */
+.mmt-swoosh {
   position: absolute;
-  z-index: -1;
-  top: 4%;
-  right: -6%;
-  width: 78%;
-  height: 34%;
-  border-radius: 50%;
-  background: conic-gradient(from 200deg at 50% 50%, transparent 0deg, #a7f3d0 40deg, #fde68a 90deg, #7dd3fc 140deg, transparent 200deg);
-  filter: blur(26px);
-  opacity: 0.7;
-  transform: rotate(-18deg);
+  z-index: 2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
+/* cloud puffs: defined white pills with lobes + drop shadow, softly blurred */
 .mmt-cloud {
   position: absolute;
-  background: rgba(255, 255, 255, 0.9);
+  z-index: 3;
+  background: #fff;
   border-radius: 999px;
-  filter: blur(4px);
-  box-shadow: 22px 6px 0 -4px rgba(255, 255, 255, 0.9), -20px 8px 0 -6px rgba(255, 255, 255, 0.85);
+  filter: blur(3px);
+  box-shadow:
+    26px -10px 0 2px #fff,
+    -26px -6px 0 -2px #fff,
+    2px 10px 0 0 #fff,
+    0 22px 30px rgba(96, 130, 175, 0.4);
 }
-.mmt-cloud--1 { width: 90px; height: 26px; top: 22%; right: 6%; }
-.mmt-cloud--2 { width: 70px; height: 20px; bottom: 20%; right: 26%; opacity: 0.85; }
-.mmt-cloud--3 { width: 56px; height: 16px; bottom: 30%; left: 4%; opacity: 0.7; }
-/* hollow ring markers */
+.mmt-cloud--1 { width: 15%; height: 5%; bottom: 17%; left: 14%; opacity: 0.98; }
+.mmt-cloud--2 { width: 11%; height: 4%; top: 36%; right: 7%; opacity: 0.9; }
+.mmt-cloud--3 { width: 8%; height: 3.2%; top: 15%; left: 37%; opacity: 0.85; }
+.mmt-cloud--4 { width: 10%; height: 3.6%; bottom: 33%; right: 26%; opacity: 0.9; }
+/* ring markers: white core, colored rim, tight dark label */
 .mmt-pin {
   position: absolute;
+  z-index: 4;
   transform: translate(-50%, -50%);
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 1px;
   white-space: nowrap;
   pointer-events: none;
   transition: opacity 0.25s ease;
 }
 .mmt-pin-dot {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: transparent;
+  background: #fff;
   border: 2px solid var(--coral);
-  box-shadow: 0 0 0 3px rgba(255, 107, 74, 0.14);
-  animation: mmt-pulse 2.6s ease-in-out infinite;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.18);
   flex: 0 0 auto;
 }
-.mmt-pin:nth-child(3n) .mmt-pin-dot {
-  border-color: var(--sky);
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.16);
-}
-.mmt-pin:nth-child(4n) .mmt-pin-dot {
-  background: var(--sky);
-  border-color: var(--sky);
-}
+.mmt-pin:nth-child(3n) .mmt-pin-dot { border-color: #f43f5e; }
+.mmt-pin:nth-child(4n) .mmt-pin-dot { border-color: #f59e0b; }
+.mmt-pin:nth-child(5n) .mmt-pin-dot { border-color: var(--sky); }
 .mmt-pin-label {
-  font-size: 12px;
+  font-family: var(--font-display);
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--ink);
-  background: rgba(255, 255, 255, 0.78);
-  padding: 1px 8px;
-  border-radius: 999px;
-  backdrop-filter: blur(2px);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.9), 0 0 6px rgba(255, 255, 255, 0.8);
 }
 
 /* ── Feed ── */
@@ -871,18 +896,15 @@ button.mmt-brand:hover .mmt-brand-logo { opacity: 0.85; }
 /* ── Animations ── */
 @keyframes mmt-spin { to { transform: rotate(360deg); } }
 @keyframes mmt-pulse { 50% { opacity: 0.35; } }
-@keyframes mmt-drift { 0%, 100% { background-position: 0% 0; } 50% { background-position: 100% 0; } }
 @keyframes mmt-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes mmt-swirl { to { transform: rotate(360deg); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .mmt-horizon,
   .mmt-conn-dot,
   .mmt-spinner,
   .mmt-stage-orb,
   .mmt-rail-line,
   .mmt-connect-ring,
-  .mmt-pin-dot,
   .mmt-dash-card { animation: none; }
 }
 
@@ -890,9 +912,20 @@ button.mmt-brand:hover .mmt-brand-logo { opacity: 0.85; }
 @media (max-width: 860px) {
   .mmt-cockpit { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
   .mmt-rail-col { max-height: 44vh; border-top: 1px solid var(--line); }
-  .mmt-hero-inner { grid-template-columns: 1fr; }
-  .mmt-hero-lead { align-items: center; text-align: center; }
-  .mmt-globe-wrap { order: -1; height: min(46vh, 360px); }
+  /* hero: globe becomes a faded backdrop behind centered copy */
+  .mmt-hero { justify-content: center; }
+  .mmt-hero-lead { align-items: center; text-align: center; max-width: none; }
+  .mmt-hero-title { white-space: normal; }
+  .mmt-globe-wrap {
+    top: -8%;
+    right: 50%;
+    transform: translateX(50%);
+    width: min(120vw, 560px);
+    opacity: 0.4;
+  }
+  .mmt-pin { display: none; }
+  .mmt-chipbar { justify-content: flex-start; }
+  .mmt-chip { flex: 0 0 auto; }
 }
 
 @media (max-width: 560px) {

@@ -1,4 +1,5 @@
 import { useState, type CSSProperties } from 'react';
+import { TreePalm, Users, Plane, Heart, Briefcase, Landmark, Compass, type LucideIcon } from 'lucide-react';
 import { LiveKitRoom, RoomAudioRenderer, StartAudio } from '@livekit/components-react';
 import '@livekit/components-styles';
 import { fetchToken, type TokenResult } from '../hooks/useToken';
@@ -52,7 +53,7 @@ export default function Concierge() {
   /* ── Hero (before connecting) ── */
   if (!started) {
     return (
-      <main className="mmt">
+      <main className="mmt mmt--hero">
         <header className="mmt-topbar mmt-topbar--hero">
           <Brand />
           <button className="mmt-login-btn" type="button">
@@ -62,50 +63,55 @@ export default function Concierge() {
         </header>
 
         <section className="mmt-hero">
-          <div className="mmt-hero-inner">
-            <div className="mmt-hero-lead">
-              <p className="mmt-eyebrow">AI Travel Concierge</p>
-              <h1 className="mmt-hero-title">
-                Where to <span className="mmt-hero-accent">next?</span>
-              </h1>
-              <span className="mmt-horizon" aria-hidden="true" />
-              <p className="mmt-hero-sub">
-                Connect and just say where you&rsquo;d like to go. I&rsquo;ll pull up flights,
-                hotels and the whole plan while we talk.
-              </p>
+          <Globe3D />
 
-              <button className="mmt-connect" type="button" onClick={() => start()}>
+          <div className="mmt-hero-lead">
+            <p className="mmt-eyebrow">AI Travel Concierge</p>
+            <h1 className="mmt-hero-title">
+              Where to <span className="mmt-hero-accent">next?</span>
+            </h1>
+            <p className="mmt-hero-sub">
+              Connect and just say where you&rsquo;d like to go.
+              <br />
+              I&rsquo;ll pull up flights, hotels and the whole plan while we talk.
+            </p>
+
+            <div className="mmt-connect-block">
+              <button className="mmt-connect" type="button" onClick={() => start()} aria-label="Tap to speak">
                 <span className="mmt-connect-ring" aria-hidden="true" />
                 <span className="mmt-connect-face">
-                  <MicGlyph />
-                  Tap to speak
+                  <MicGlyph size={34} />
                 </span>
               </button>
+              <p className="mmt-connect-label" aria-hidden="true">Tap to speak</p>
               <p className="mmt-connect-hint">Uses your microphone · talk naturally</p>
-
-              <div className="mmt-chips" role="group" aria-label="Popular with travelers">
-                <span className="mmt-chips-label">Popular with travelers</span>
-                {STARTERS.map((s) => (
-                  <button
-                    key={s.label}
-                    type="button"
-                    className="mmt-chip"
-                    onClick={() => start(s.seed)}
-                    style={{ '--chip-tint': s.tint, '--chip-ink': s.ink } as CSSProperties}
-                  >
-                    <span className="mmt-chip-emoji" aria-hidden="true">{s.emoji}</span>
-                    <span>
-                      <span className="mmt-chip-title">{s.label}</span>
-                      <span className="mmt-chip-sub">{s.sub}</span>
-                    </span>
-                  </button>
-                ))}
-              </div>
             </div>
-
-            <Globe3D />
           </div>
         </section>
+
+        <footer className="mmt-chipbar" role="group" aria-label="Popular with travelers">
+          <span className="mmt-chipbar-label">
+            <Compass size={16} aria-hidden="true" />
+            Popular with travelers
+          </span>
+          {STARTERS.map((s) => (
+            <button
+              key={s.label}
+              type="button"
+              className="mmt-chip"
+              onClick={() => start(s.seed)}
+              style={{ '--chip-tint': s.tint, '--chip-ink': s.ink } as CSSProperties}
+            >
+              <span className="mmt-chip-icon" aria-hidden="true">
+                <s.icon size={16} strokeWidth={2.2} />
+              </span>
+              <span>
+                <span className="mmt-chip-title">{s.label}</span>
+                <span className="mmt-chip-sub">{s.sub}</span>
+              </span>
+            </button>
+          ))}
+        </footer>
       </main>
     );
   }
@@ -180,13 +186,20 @@ export default function Concierge() {
   );
 }
 
-const STARTERS = [
-  { emoji: '🏖️', label: 'Weekend Getaway', sub: '2–3 days', seed: 'Plan a weekend getaway', tint: '#e8f8ee', ink: '#16a34a' },
-  { emoji: '👨‍👩‍👧', label: 'Family Vacation', sub: '4–7 days', seed: 'Plan a family vacation', tint: '#e8f1fe', ink: '#2563eb' },
-  { emoji: '✈️', label: 'International Trip', sub: 'Flights + stay', seed: 'Plan an international trip', tint: '#e6f6fd', ink: '#0284c7' },
-  { emoji: '💛', label: 'Honeymoon', sub: 'Romantic escapes', seed: 'Plan a honeymoon', tint: '#fdeaf2', ink: '#db2777' },
-  { emoji: '💼', label: 'Business Travel', sub: 'Work trips', seed: 'Plan a business trip', tint: '#eceafe', ink: '#6d28d9' },
-  { emoji: '🛕', label: 'Thailand Special', sub: 'Visa on arrival', seed: 'Plan a trip to Thailand', tint: '#f3e9fd', ink: '#7c3aed' },
+const STARTERS: Array<{
+  icon: LucideIcon;
+  label: string;
+  sub: string;
+  seed: string;
+  tint: string;
+  ink: string;
+}> = [
+  { icon: TreePalm, label: 'Weekend Getaway', sub: '2–3 days', seed: 'Plan a weekend getaway', tint: '#e8f8ee', ink: '#16a34a' },
+  { icon: Users, label: 'Family Vacation', sub: '4–7 days', seed: 'Plan a family vacation', tint: '#e8f1fe', ink: '#2563eb' },
+  { icon: Plane, label: 'International Trip', sub: 'Flights + stay', seed: 'Plan an international trip', tint: '#e6f6fd', ink: '#0284c7' },
+  { icon: Heart, label: 'Honeymoon', sub: 'Romantic escapes', seed: 'Plan a honeymoon', tint: '#fdecee', ink: '#e11d48' },
+  { icon: Briefcase, label: 'Business Travel', sub: 'Work trips', seed: 'Plan a business trip', tint: '#fdedec', ink: '#c9201d' },
+  { icon: Landmark, label: 'Thailand Special', sub: 'Visa on arrival', seed: 'Plan a trip to Thailand', tint: '#f3e9fd', ink: '#7c3aed' },
 ];
 
 const MicGlyph = ({ size = 20 }: { size?: number }) => (
