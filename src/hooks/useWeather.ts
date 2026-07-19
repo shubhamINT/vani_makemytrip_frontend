@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 
 export interface Weather {
   tempC: number;
+  hi?: number;
+  lo?: number;
   label: string;
   icon: string;
 }
@@ -20,14 +22,15 @@ function describe(code: number): { label: string; icon: string } {
 
 /**
  * Live current weather for a city name via Open-Meteo (free, no API key).
- * Geocodes the name, then fetches current temp. Returns null until resolved or
- * on any failure (caller hides the widget).
+ * Geocodes the name, then fetches current temp + today's high/low. Returns
+ * null until resolved or on any failure (caller hides the widget).
  */
 export function useWeather(city: string | undefined): Weather | null {
   const [weather, setWeather] = useState<Weather | null>(null);
 
   useEffect(() => {
     if (!city) {
+      /* eslint-disable-next-line react-hooks/set-state-in-effect */
       setWeather(null);
       return;
     }
@@ -40,11 +43,18 @@ export function useWeather(city: string | undefined): Weather | null {
         const place = geo?.results?.[0];
         if (!place) return;
         const wx = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&current=temperature_2m,weather_code`,
+          `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&forecast_days=1&timezone=auto`,
         ).then((r) => r.json());
         const cur = wx?.current;
         if (cancelled || !cur) return;
-        setWeather({ tempC: Math.round(cur.temperature_2m), ...describe(cur.weather_code) });
+        const hi = wx?.daily?.temperature_2m_max?.[0];
+        const lo = wx?.daily?.temperature_2m_min?.[0];
+        setWeather({
+          tempC: Math.round(cur.temperature_2m),
+          hi: typeof hi === 'number' ? Math.round(hi) : undefined,
+          lo: typeof lo === 'number' ? Math.round(lo) : undefined,
+          ...describe(cur.weather_code),
+        });
       } catch {
         if (!cancelled) setWeather(null);
       }

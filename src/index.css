@@ -1,3 +1,10 @@
+/* Tailwind v4 — NO preflight import: the approved landing page depends on
+   default browser styles + site.css. The live shell gets its own scoped
+   mini-reset below (.live-shell). */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
 :root {
   /* MakeMyTrip — warm white paper, brand-red accents */
   --paper: #fbfaf9;
@@ -23,6 +30,42 @@
   --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
+/* Brand tokens exposed to Tailwind utilities (inline: values stay live refs
+   to :root so theme.ts / site.css keep resolving against one source). */
+@theme inline {
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-line: var(--line);
+  --color-coral: var(--coral);
+  --color-coral-ink: var(--coral-ink);
+  --color-coral-soft: var(--coral-soft);
+  --color-sky-brand: var(--sky);
+  --color-sky-soft: var(--sky-soft);
+  --color-teal-brand: var(--teal);
+  --color-danger: var(--danger);
+  --color-lavender: #eef0fe;
+  --color-lavender-ink: #5b63d3;
+  --color-amber-brand: #f5a623;
+  --color-amber-soft: #fef4e2;
+  --color-emerald-brand: #16a34a;
+  --color-emerald-soft: #e8f8ee;
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --radius-card: 16px;
+  --radius-card-lg: 22px;
+  --shadow-card: var(--shadow-sm);
+  --shadow-float: var(--shadow-md);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -40,4 +83,47 @@ body {
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* ── Scoped mini-reset for the Tailwind live shell (replaces preflight).
+   The landing page (.mmt--hero, site.css) is untouched by all of this. ── */
+@layer base {
+  .live-shell,
+  .live-shell *,
+  .live-shell *::before,
+  .live-shell *::after {
+    border-width: 0;
+    border-style: solid;
+    border-color: var(--line);
+  }
+  .live-shell :is(h1, h2, h3, h4, p, dl, dt, dd, ul, ol, figure, blockquote) {
+    margin: 0;
+  }
+  .live-shell :is(ul, ol) {
+    padding: 0;
+    list-style: none;
+  }
+  .live-shell :is(button, input, select, textarea) {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border-radius: 0;
+    padding: 0;
+  }
+  .live-shell button {
+    cursor: pointer;
+  }
+  .live-shell button:disabled {
+    cursor: default;
+  }
+  .live-shell img,
+  .live-shell svg {
+    display: block;
+    max-width: 100%;
+  }
+  .live-shell :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--sky), 0 0 0 4px var(--sky-soft);
+    border-radius: var(--radius);
+  }
 }

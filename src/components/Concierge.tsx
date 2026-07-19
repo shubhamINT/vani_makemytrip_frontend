@@ -4,10 +4,7 @@ import { LiveKitRoom, RoomAudioRenderer, StartAudio } from '@livekit/components-
 import '@livekit/components-styles';
 import { fetchToken, type TokenResult } from '../hooks/useToken';
 import ErrorBoundary from './ErrorBoundary';
-import Stage from './Stage';
-import Transcript from './Transcript';
-import TripSummary from './TripSummary';
-import Composer from './Composer';
+import LiveShell from './live/LiveShell';
 import Globe3D from './Globe3D';
 import '../styles/site.css';
 
@@ -116,73 +113,37 @@ export default function Concierge() {
     );
   }
 
-  /* ── Live (connecting / connected) ── */
+  /* ── Live (connecting / connected) — LiveShell replaces old cockpit + dock ── */
   return (
-    <main className="mmt">
-      <header className="mmt-topbar">
-        <Brand onClick={reset} />
-        <span className="mmt-conn" data-state={conn}>
-          <span className="mmt-conn-dot" />
-          {conn === 'connected' ? 'Live' : conn === 'error' ? 'Offline' : 'Connecting…'}
-        </span>
-      </header>
-
-      {conn === 'error' && (
-        <div className="mmt-banner" role="alert">
-          {error}
-          <button className="mmt-banner-btn" onClick={reset}>Start over</button>
-        </div>
-      )}
-
-      {creds && (
-        <ErrorBoundary onReset={reset}>
-          <LiveKitRoom
-            serverUrl={creds.url}
-            token={creds.token}
-            connect
-            audio
-            video={false}
-            className="mmt-room"
-            onConnected={() => setConn('connected')}
-            onDisconnected={reset}
-            onError={(e) => {
-              setError(e.message);
-              setConn('error');
-              setCreds(null);
-            }}
-          >
-            <RoomAudioRenderer volume={speakerMuted ? 0 : 1} />
-            <StartAudio label="Tap to enable sound" className="mmt-startaudio" />
-            <div className="mmt-cockpit">
-              <Stage connecting={conn !== 'connected'} />
-              <div className="mmt-rail-col">
-                <TripSummary />
-                <Transcript agentName={AGENT} />
-              </div>
-            </div>
-            <footer className="mmt-dock">
-              <Composer
-                pending={pending}
-                ready={conn === 'connected'}
-                onPendingSent={() => setPending(null)}
-                speakerMuted={speakerMuted}
-                onToggleSpeaker={() => setSpeakerMuted((m) => !m)}
-                onDisconnect={reset}
-              />
-            </footer>
-          </LiveKitRoom>
-        </ErrorBoundary>
-      )}
-
-      {!creds && conn === 'connecting' && (
-        <div className="mmt-feedwrap">
-          <div className="mmt-connecting">
-            <span className="mmt-spinner" aria-hidden="true" />
-            <p>Connecting you to your concierge…</p>
-          </div>
-        </div>
-      )}
-    </main>
+    <LiveKitRoom
+      serverUrl={creds?.url ?? ''}
+      token={creds?.token ?? ''}
+      connect={!!creds}
+      audio
+      video={false}
+      onConnected={() => setConn('connected')}
+      onDisconnected={reset}
+      onError={(e) => {
+        setError(e.message);
+        setConn('error');
+        setCreds(null);
+      }}
+    >
+      <RoomAudioRenderer volume={speakerMuted ? 0 : 1} />
+      <StartAudio label="Tap to enable sound" />
+      <ErrorBoundary onReset={reset}>
+        <LiveShell
+          conn={conn}
+          agentName={AGENT}
+          error={error || undefined}
+          pending={pending}
+          onPendingSent={() => setPending(null)}
+          speakerMuted={speakerMuted}
+          onToggleSpeaker={() => setSpeakerMuted((m) => !m)}
+          onDisconnect={reset}
+        />
+      </ErrorBoundary>
+    </LiveKitRoom>
   );
 }
 

@@ -2,11 +2,13 @@
 
 Hand this to the backend/agent developer. It defines everything the LiveKit agent
 must provide so the frontend (this repo) works: the token endpoint, the room topics,
-and the **openui-lang** the agent streams to render flights, hotels, tickets and trips.
+and the **hybrid rendering protocol** — typed JSON topics for structured data
+(hotels, flights, hero), and openui-lang for long-tail content.
 
-The frontend renders with OpenUI's `openuiChatLibrary`, so the agent must emit **only
-components from that library** (listed at the end). Every example below is
-parser-validated against that library.
+**Important:** The frontend now uses hybrid rendering. Hotel/flight search results
+**must** be sent as typed JSON topics (not openui-lang). openui-lang remains only for
+experiences, food, itinerary, budget, visa, booking confirmations, charts, and
+open-ended answers. See the routing rule in §5.
 
 ---
 
@@ -38,106 +40,159 @@ Response (envelope; flat `{token,url}` also accepted):
 |---|---|---|---|
 | agent → user | audio track | — | spoken replies (agent greets first) |
 | both | `lk.transcription` | reserved | live captions (LiveKit-managed, do not write) |
-| user → agent | `lk.chat` | text | typed messages **and booking actions** (see §4) |
-| agent → user | `ui.render` | raw openui-lang text | a result panel to display |
-| agent → user | `trip.summary` | JSON | pins the trip summary card in the side panel |
+| user → agent | `lk.chat` | text | typed messages **and booking/action strings** (see §6) |
+| agent → user | `trip.hero` | JSON (readAll + parse) | destination hero banner card |
+| agent → user | `hotels.list` | JSON (readAll + parse) | hotel search results carousel |
+| agent → user | `flights.list` | JSON (readAll + parse) | flight search results section |
+| agent → user | `trip.summary` | JSON (readAll + parse) | trip summary card in the utility rail |
+| agent → user | `ui.render` | raw openui-lang text | **long-tail only** — experiences, food, itinerary, budget, visa, bookings, charts |
+
+Each typed JSON topic (`trip.hero`, `hotels.list`, `flights.list`, `trip.summary`)
+is a **single JSON snapshot per stream** — the frontend calls `readAll()` then parses.
+Every re-send replaces the previous value on that topic.
 
 `ui.render` streams carry two **attributes** the dashboard uses:
 - `tab` — one of `overview / hotels / flights / experiences / food / itinerary / budget / visa` (which dashboard tab to file the render under; untagged → overview).
-- `title` — a short heading shown above the render (e.g. `"Hotels in Kolkata"`).
+- `title` — a short heading shown above the render (e.g. `"Kolkata Street Food Tour"`).
 
-`trip.summary` is a single JSON blob, streamed whenever the trip's shape is known
-or changes: `{ "destination", "dates", "duration", "travelers", "budget" }` — all
-short strings. `destination` should be a clean place name; the frontend fetches live
-weather for it (Open-Meteo). Example:
-`{"destination":"Kolkata","dates":"24–26 May 2025","duration":"2 nights / 3 days","travelers":"2 adults","budget":"₹28,000 – ₹32,000"}`
+`trip.summary` — existing fields unchanged; add optional
+`"fullPlanAction"` (string, powers "View Full Plan →" button; frontend default:
+`"Show me the full trip plan"` if absent). Example:
+```json
+{"destination":"Kolkata","dates":"24–26 May 2025","duration":"2 nights / 3 days","travelers":"2 adults","budget":"₹28,000 – ₹32,000","fullPlanAction":"Show me the full trip plan for Kolkata"}
+```
 
 Rules:
 - Greet first with a short spoken line.
 - When data is better **shown** than spoken (search results, a confirmation, an
-  itinerary), call your `render_ui` tool and stream the openui-lang on `ui.render`.
+  itinerary), send the appropriate typed JSON topic or openui-lang render.
   Say a short line too ("Here are your options") so voice users look at the screen.
-- **No persistence** — `ui.render`/transcripts are realtime only. Persist server-side.
+- **No persistence** — all topics/transcripts are realtime only. Persist server-side.
 
 ---
 
-## 3. openui-lang the agent emits
+## 3. Typed JSON topics — `trip.hero`
 
-Line-oriented, assignment-based. `root` must be a `Card`. Positional args, one
-statement per line. Below are the core travel patterns — copy the shapes.
+Sent once when the destination is known. Renders the hero banner card in the overview tab.
 
-> **Making it premium.** The frontend now themes `openuiChatLibrary` with the MakeMyTrip
-> brand (coral accent, Bricolage/Inter fonts, on-brand chart palette). To match that polish,
-> the agent should:
-> - **Generate the system prompt, don't hand-write it.** Build render instructions from
->   `openuiChatLibrary.prompt(openuiChatPromptOptions)` so signatures stay valid and current.
-> - **Validate every render before streaming.** Run
->   `createParser(openuiChatLibrary.toJSONSchema(), "Card").parse(src)`, check
->   `result.meta.errors`, and feed any errors back to the model to self-correct. Never stream
->   unparsed lang.
-> - **Use real image URLs** from the search/tool results (never placeholders) — `Image`/`Carousel`
->   cards carry the premium look.
-> - **Reach for richer components:** `TagBlock` for amenities/fare classes, `Callout("success", …)`
->   for confirmations, `Steps` for itineraries, `SectionBlock` for grouped detail.
-> - **End every result with a `FollowUpBlock`** so the conversation keeps moving.
-> - **Make everything actionable:** each item gets a `Button` with a self-sufficient
->   `@ToAssistant(...)` string; payment / e-tickets use `@OpenUrl(...)`.
-> - **Layout:** results stack full-width, so tables and carousels render fine — but keep each
->   `Card` to one clear job and prefer a `Carousel` over wide multi-column grids.
-> - **Charts** (`LineChart`/`BarChart` for price trends) inherit the on-brand palette automatically.
-
-### Hotel results (carousel of cards with images, tags, price, Book)
-```text
-root = Card([head, note, hotels, follow])
-head = CardHeader("Modern Hotels in Paris", "Showing 3 stays")
-note = TextContent("Design-forward hotels near the Champs-Élysées.")
-hotels = Carousel([c1, c2, c3])
-c1 = Card([img1, name1, tags1, price1, b1])
-img1 = Image("Hotel Plaza Athénée", "https://example.com/plaza.jpg")
-name1 = TextContent("Hotel Plaza Athénée", "default-heavy")
-tags1 = TagBlock([Tag("Free Wifi", null, null, "success"), Tag("Spa", null, null, "info")])
-price1 = TextContent("₹42,000 / night")
-b1 = Button("Book", Action([@ToAssistant("Book Hotel Plaza Athénée")]), "primary")
-c2 = Card([img2, name2, price2, b2])
-img2 = Image("Four Seasons George V", "https://example.com/george.jpg")
-name2 = TextContent("Four Seasons George V", "default-heavy")
-price2 = TextContent("₹58,000 / night")
-b2 = Button("Book", Action([@ToAssistant("Book Four Seasons George V")]), "primary")
-c3 = Card([img3, name3, price3, b3])
-img3 = Image("Hotel Lutetia", "https://example.com/lutetia.jpg")
-name3 = TextContent("Hotel Lutetia", "default-heavy")
-price3 = TextContent("₹49,000 / night")
-b3 = Button("Book", Action([@ToAssistant("Book Hotel Lutetia")]), "primary")
-follow = FollowUpBlock([FollowUpItem("Cheaper options"), FollowUpItem("Near the Eiffel Tower")])
+```json
+{
+  "destination": "Kolkata",
+  "region": "West Bengal, India",
+  "image": { "src": "https://cdn…/kolkata-hero-1600x600.webp", "alt": "Victoria Memorial" },
+  "stats": [
+    { "icon": "sun",      "label": "Good Weather",     "value": "28°C" },
+    { "icon": "calendar", "label": "Best Season",      "value": "Oct – Mar" },
+    { "icon": "tag",      "label": "Avg. Hotel Price", "value": "₹3,000 / night" }
+  ],
+  "related": ["Best time to visit Kolkata", "3-day Kolkata itinerary"]
+}
 ```
 
-### Flight results (table + book buttons)
-```text
-root = Card([head, flights, book])
-head = CardHeader("Delhi → Goa", "Fri, 18 Jul · 42 flights")
-flights = Table([Col("Airline", ["IndiGo", "Vistara", "Air India"]), Col("Depart", ["06:10", "09:25", "13:40"]), Col("Duration", ["2h 25m", "2h 30m", "2h 20m"]), Col("Fare", ["₹4,199", "₹5,850", "₹6,100"], "number")])
-book = Buttons([Button("Book IndiGo 06:10", Action([@ToAssistant("Book IndiGo flight Delhi to Goa at 06:10")]), "primary"), Button("More times", Action([@ToAssistant("Show more flight times")]), "secondary")])
-```
-
-### Booking confirmation / ticket (callout + details + e-ticket link)
-```text
-root = Card([head, alert, details, actions])
-head = CardHeader("Booking confirmed", "PNR ABX7Q2")
-alert = Callout("success", "You're going to Goa!", "IndiGo 6E-231 · Fri 18 Jul · 06:10")
-details = ListBlock([ListItem("Seat 14A · Window"), ListItem("Terminal 1, Gate to be announced"), ListItem("Total paid: ₹4,199")])
-actions = Buttons([Button("View e-ticket", Action([@OpenUrl("https://example.com/ticket/ABX7Q2")]), "primary"), Button("Add to calendar", Action([@ToAssistant("Add my Goa flight to calendar")]), "secondary")])
-```
-
-### Trip itinerary (steps)
-```text
-root = Card([head, plan])
-head = CardHeader("3 days in Bali", "Budget-friendly")
-plan = Steps([StepsItem("Day 1 — Seminyak", "Beach clubs, sunset at Tanah Lot"), StepsItem("Day 2 — Ubud", "Rice terraces, Monkey Forest, temples"), StepsItem("Day 3 — Nusa Penida", "Kelingking Beach day trip")])
-```
+- `icon` enum: `sun | cloud | calendar | tag | wallet | thermometer | umbrella` (unknown → generic dot).
+- `stats` ≤ 4, `related` ≤ 5 short strings (clicking one sends it as a chat message).
+- Image: 1600×600 WebP q75–80, ≤ 200 KB.
 
 ---
 
-## 4. Booking round-trip — how actions come back
+## 4. Typed JSON topics — `hotels.list`
+
+Sent when hotel search results arrive. Renders as a carousel in the overview + full list in the Hotels tab.
+
+```json
+{
+  "title": "Top Hotels for You",
+  "destination": "Kolkata",
+  "viewAllAction": "Show me all hotel options in Kolkata for 24–26 May, 2 adults",
+  "hotels": [{
+    "id": "abhiray-grand",
+    "name": "Abhiray Grand Hotel",
+    "image": { "src": "https://cdn…/abhiray-640x480.webp", "alt": "Abhiray Grand exterior" },
+    "badge": "Popular",
+    "rating": 4.6,
+    "reviews": 1248,
+    "location": "New Market, Kolkata",
+    "amenities": ["Breakfast incl.", "Free cancellation"],
+    "price": "₹4,200",
+    "priceUnit": "/ night",
+    "action": "Show me rooms at Abhiray Grand Hotel, New Market, Kolkata for 24–26 May, 2 adults"
+  }]
+}
+```
+
+- `badge`, `rating`, `reviews`, `location`, `amenities` optional.
+- `amenities` ≤ 3 shown; 3–8 hotels (overview shows first 4, Hotels tab shows all).
+- `action` powers the blue "View Rooms" button — sent verbatim back on `lk.chat`.
+- `viewAllAction` powers the "View all" link — sent verbatim back on `lk.chat`.
+- Image: 640×480 WebP q75, ≤ 60 KB per hotel.
+
+---
+
+## 5. Typed JSON topics — `flights.list`
+
+Sent when flight search results arrive. Renders as a staggered list in the overview + full list in the Flights tab.
+
+```json
+{
+  "title": "Recommended Flights",
+  "viewAllAction": "Show me all flights from Delhi to Kolkata on 24 May",
+  "flights": [{
+    "id": "6e-2041",
+    "airline": "IndiGo",
+    "logo": "https://cdn…/airlines/indigo-96.webp",
+    "flightNo": "6E 2041",
+    "depart": { "time": "06:20", "code": "DEL" },
+    "arrive": { "time": "08:45", "code": "CCU" },
+    "duration": "2h 25m",
+    "stops": "Non-stop",
+    "price": "₹5,600",
+    "tag": "Lowest fare",
+    "action": "Book IndiGo 6E 2041, Delhi to Kolkata, departing 06:20 on 24 May, 2 adults"
+  }]
+}
+```
+
+- `tag` optional → shown as a green "Lowest fare" badge.
+- `logo` optional → fallback = airline-initials avatar.
+- 2–6 rows (overview shows first 3, Flights tab shows all).
+- `action` powers the "Book" button — sent verbatim back on `lk.chat`.
+- Logo: 96×96 WebP/PNG/SVG, ≤ 10 KB per airline.
+
+---
+
+## 6. Routing rule — typed JSON vs openui-lang
+
+| Scenario | Topic |
+|---|---|
+| Hotel search results | `hotels.list` |
+| Flight search results | `flights.list` |
+| Destination hero card | `trip.hero` |
+| Trip summary sidebar | `trip.summary` |
+| Experiences, food, itinerary, budget, visa | `ui.render` (openui-lang) |
+| Booking confirmations, charts, open-ended answers | `ui.render` (openui-lang) |
+
+**Stop emitting openui-lang for hotel and flight search results.** Use the typed JSON
+topics above. Every button `action` string is sent back verbatim on `lk.chat` (same
+semantics as `@ToAssistant(...)`) — must be self-sufficient (name + dates + pax).
+
+---
+
+## 7. Image requirements
+
+All image URLs must be HTTPS only (mixed content blocked), actually resolvable,
+and include meaningful `alt` text. Prefer CDN resize params (`?w=640&q=75&fm=webp`).
+
+| Asset | Aspect | Send (2x) | Format | Budget |
+|---|---|---|---|---|
+| Hero banner | ~8:3 | **1600×600** | WebP q75–80 | ≤ 200 KB |
+| Hotel card thumb | 4:3 | **640×480** | WebP q75 | ≤ 60 KB |
+| Airline logo | 1:1 | **96×96** | WebP/PNG alpha (SVG ideal) | ≤ 10 KB |
+
+`Cache-Control: public, max-age=31536000, immutable` recommended.
+
+---
+
+## 8. Booking round-trip — how actions come back
 
 Buttons carry an `Action(...)`. When the user clicks one, the frontend does:
 
@@ -155,7 +210,11 @@ Payment/checkout that must happen in-browser → send the user to a URL with `@O
 
 ---
 
-## 5. Allowed components (openuiChatLibrary)
+## 9. Allowed components — openui-lang (for `ui.render` long-tail only)
+
+The following applies only to `ui.render` topics (experiences, food, itinerary,
+budget, visa, booking confirmations, charts, open-ended answers). Do **not** use
+these for hotel/flight search results — use the typed JSON topics in §3–5 instead.
 
 Emit only these. Argument order matters (positional). Verify new shapes with the parser
 before shipping (`createParser(openuiChatLibrary.toJSONSchema(), "Card").parse(src)`,
