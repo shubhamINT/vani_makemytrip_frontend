@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useChat, useTranscriptions, useLocalParticipant } from '@livekit/components-react';
+import { MOCK, chat as mockChat } from '../dev/fixtures';
 
 export interface ConversationLine {
   id: string;
@@ -19,6 +20,7 @@ export function useConversation(): ConversationLine[] {
   const transcriptions = useTranscriptions();
 
   return useMemo<ConversationLine[]>(() => {
+    if (MOCK) return mockChat; // dev preview
     const isAgent = (identity: string) =>
       localIdentity ? identity !== localIdentity : identity !== '' && identity !== 'web-user';
 

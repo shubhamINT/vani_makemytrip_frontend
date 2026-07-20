@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   useLocalParticipant,
   useChat,
@@ -91,11 +92,14 @@ export default function VoiceDock({
 
   const listening = ready && state === 'listening' && isMicrophoneEnabled;
 
-  return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-5 z-40 flex justify-center px-4">
+  // Portal to <body> so the dock is pinned to the viewport regardless of any
+  // ancestor that establishes a containing block (transform/filter) or clips
+  // overflow. ponytail: portal, not manual z-index whack-a-mole.
+  return createPortal(
+    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex justify-center px-4">
       <form
         onSubmit={submit}
-        className="pointer-events-auto flex w-[min(94vw,620px)] items-center gap-1.5 rounded-full border border-line bg-surface/95 py-2 pl-2 pr-2 shadow-float backdrop-blur-md focus-within:border-sky-brand/60"
+        className="pointer-events-auto flex w-[min(94vw,620px)] max-w-full items-center gap-1.5 overflow-hidden rounded-full border border-line bg-surface/95 py-2 pl-2 pr-2 shadow-float backdrop-blur-md focus-within:border-sky-brand/60"
       >
         <Button
           type="button"
@@ -136,7 +140,7 @@ export default function VoiceDock({
         </span>
 
         {ready && state && state !== 'disconnected' && (
-          <span className="flex shrink-0 items-center gap-1.5 pl-1 text-xs font-semibold text-muted">
+          <span className="hidden shrink-0 items-center gap-1.5 pl-1 text-xs font-semibold text-muted sm:flex">
             <span className="relative flex size-1.5">
               {STATE_DOT[state] && (
                 <span
@@ -157,7 +161,7 @@ export default function VoiceDock({
             trackRef={vizTrack}
             barCount={7}
             options={{ minHeight: 8 }}
-            className="h-[22px] w-12 shrink-0 text-coral [--lk-fg:currentColor] data-[lk-va-state=listening]:text-sky-brand"
+            className="hidden h-[22px] w-12 shrink-0 text-coral [--lk-fg:currentColor] data-[lk-va-state=listening]:text-sky-brand sm:block"
           />
         )}
 
@@ -193,6 +197,7 @@ export default function VoiceDock({
           <PhoneOff className="size-4.5" />
         </Button>
       </form>
-    </div>
+    </div>,
+    document.body,
   );
 }

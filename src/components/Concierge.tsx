@@ -6,6 +6,7 @@ import { fetchToken, type TokenResult } from '../hooks/useToken';
 import ErrorBoundary from './ErrorBoundary';
 import LiveShell from './live/LiveShell';
 import Globe3D from './Globe3D';
+import { MOCK } from '../dev/fixtures';
 import '../styles/site.css';
 
 const MMT_LOGO = 'https://jsak.mmtcdn.com/mmt-ai/static/assets/ic-mmt-logo-nIgQh4Q-.webp';
@@ -46,6 +47,23 @@ export default function Concierge() {
     setSpeakerMuted(false);
     setError('');
   };
+
+  /* ── Dev preview (?mock=1): full cockpit with fixtures, no backend ── */
+  if (MOCK) {
+    return (
+      <LiveKitRoom serverUrl="" token="" connect={false} audio={false} video={false}>
+        <LiveShell
+          conn="connected"
+          agentName={AGENT}
+          pending={null}
+          onPendingSent={() => {}}
+          speakerMuted={false}
+          onToggleSpeaker={() => {}}
+          onDisconnect={() => {}}
+        />
+      </LiveKitRoom>
+    );
+  }
 
   /* ── Hero (before connecting) ── */
   if (!started) {

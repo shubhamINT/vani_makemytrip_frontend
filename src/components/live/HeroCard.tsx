@@ -65,55 +65,57 @@ export default function HeroCard({ hero }: { hero: TripHero }) {
             <div className="aspect-[8/3] max-h-72 w-full bg-gradient-to-r from-paper-2 to-sky-soft" />
           )}
 
-          <div className="absolute inset-0 flex flex-col justify-center gap-1 p-6 sm:p-8">
-            <div className="flex items-center gap-2">
-              <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
-                {hero.destination}
-              </h1>
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                aria-pressed={saved}
-                aria-label={saved ? 'Remove destination bookmark' : 'Bookmark destination'}
-                onClick={() => setSaved((s) => !s)}
-                className="text-muted hover:bg-white/70"
-              >
-                {saved ? <BookmarkCheck className="size-4.5 text-coral" /> : <Bookmark className="size-4.5" />}
-              </Button>
+          <div className="absolute inset-0 flex flex-col justify-center gap-3 p-6 sm:p-8">
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">
+                  {hero.destination}
+                </h1>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-pressed={saved}
+                  aria-label={saved ? 'Remove destination bookmark' : 'Bookmark destination'}
+                  onClick={() => setSaved((s) => !s)}
+                  className="text-muted hover:bg-white/70"
+                >
+                  {saved ? <BookmarkCheck className="size-4.5 text-coral" /> : <Bookmark className="size-4.5" />}
+                </Button>
+              </div>
+              {hero.region && (
+                <p className="mt-1 flex items-center gap-1 text-sm font-medium text-muted">
+                  <MapPin className="size-3.5" aria-hidden="true" />
+                  {hero.region}
+                </p>
+              )}
             </div>
-            {hero.region && (
-              <p className="flex items-center gap-1 text-sm font-medium text-muted">
-                <MapPin className="size-3.5" aria-hidden="true" />
-                {hero.region}
-              </p>
+
+            {hero.stats && hero.stats.length > 0 && (
+              <div className="flex flex-wrap gap-2.5">
+                {hero.stats.slice(0, 4).map((s) => {
+                  const Icon = s.icon ? STAT_ICONS[s.icon] : undefined;
+                  const tint = s.icon ? STAT_TINTS[s.icon] : 'bg-paper-2 text-muted';
+                  return (
+                    <div
+                      key={s.label}
+                      className="flex items-center gap-2.5 rounded-xl border border-line bg-surface/85 py-2 pl-2.5 pr-4 backdrop-blur-sm"
+                    >
+                      <span className={`flex size-8 items-center justify-center rounded-lg ${tint}`}>
+                        {Icon ? <Icon className="size-4" aria-hidden="true" /> : <span className="size-1.5 rounded-full bg-current" />}
+                      </span>
+                      <span>
+                        <span className="block text-[10px] font-semibold uppercase tracking-[0.06em] text-faint">
+                          {s.label}
+                        </span>
+                        <span className="block text-[13px] font-bold text-ink">{s.value}</span>
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         </div>
-
-        {hero.stats && hero.stats.length > 0 && (
-          <div className="flex flex-wrap gap-2.5 px-5 py-4">
-            {hero.stats.slice(0, 4).map((s) => {
-              const Icon = s.icon ? STAT_ICONS[s.icon] : undefined;
-              const tint = s.icon ? STAT_TINTS[s.icon] : 'bg-paper-2 text-muted';
-              return (
-                <div
-                  key={s.label}
-                  className="flex items-center gap-2.5 rounded-xl border border-line bg-surface py-2 pl-2.5 pr-4"
-                >
-                  <span className={`flex size-8 items-center justify-center rounded-lg ${tint}`}>
-                    {Icon ? <Icon className="size-4" aria-hidden="true" /> : <span className="size-1.5 rounded-full bg-current" />}
-                  </span>
-                  <span>
-                    <span className="block text-[10px] font-semibold uppercase tracking-[0.06em] text-faint">
-                      {s.label}
-                    </span>
-                    <span className="block text-[13px] font-bold text-ink">{s.value}</span>
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        )}
       </Card>
     </motion.div>
   );

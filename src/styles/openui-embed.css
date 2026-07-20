@@ -1,6 +1,7 @@
 /* ── Streamed openui content inside the live shell ──
-   Mirrors the old .mmt-dash-card polish so agent-rendered cards read like the
-   native ones. Scoped to .openui-embed. */
+   Mirrors the native card polish so agent-rendered content reads like the
+   bespoke sections. Scoped to .openui-embed. Targets the real openui DOM
+   classes from @openuidev/react-ui. */
 
 .openui-embed {
   background: var(--surface);
@@ -18,18 +19,21 @@
   color: var(--ink);
 }
 
-/* Carousel = horizontal scroll-snap row with a peek of the next card */
-.openui-embed [class*='carousel'] {
-  scroll-snap-type: x mandatory;
-  scrollbar-width: thin;
-  gap: 16px;
+/* Carousel: let openui's own hidden scrollbar + edge mask + nav buttons work.
+   (The old override re-enabled a thin scrollbar — that was the ugly bar.) */
+.openui-embed .openui-carousel-content {
+  scrollbar-width: none;
 }
-.openui-embed [class*='carousel'] > * {
-  scroll-snap-align: start;
-  flex: 0 0 clamp(230px, 30%, 280px);
+.openui-embed .openui-carousel-content::-webkit-scrollbar {
+  display: none;
+}
+.openui-embed .openui-carousel-button {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
 }
 
-/* Each streamed Card: own surface, soft border, hover lift, image top-rounded */
+/* Each streamed Card: own surface, soft border, hover lift */
 .openui-embed .openui-card {
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -41,10 +45,22 @@
   box-shadow: var(--shadow-md);
   transform: translateY(-3px);
 }
-.openui-embed .openui-card img {
-  width: 100%;
-  height: 148px;
+
+/* Images sit in a Radix AspectRatio box (height via padding-bottom), so a
+   pixel height never wins. Instead give the box a tinted placeholder so a
+   missing/broken image reads as intentional, not stark empty white. */
+.openui-embed .openui-image {
+  border-radius: var(--radius);
+  border-color: var(--line);
+  background: linear-gradient(135deg, var(--paper-2), var(--sky-soft));
+}
+.openui-embed .openui-image-fill {
   object-fit: cover;
+}
+/* ImageBlock variant caps at 240px — trim it and soften the error state */
+.openui-embed .openui-image-block-wrapper {
+  min-height: 150px;
+  max-height: 180px;
 }
 
 /* Book / View Rooms → compact blue pill, never wrapping */
@@ -58,9 +74,24 @@
   filter: brightness(1.05);
 }
 
-/* Follow-up prompts read as quiet links, not a heavy list */
+/* Follow-ups / list items → light pill chips (echo native RelatedQueries),
+   not heavy full-width underlined rows */
+.openui-embed .openui-follow-up-block {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.openui-embed .openui-follow-up-item,
 .openui-embed .openui-list-item {
-  border-color: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 14px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.openui-embed .openui-follow-up-item:hover,
+.openui-embed .openui-list-item-clickable:hover {
+  background: var(--coral-soft);
+  border-color: var(--coral);
 }
 
 @media (prefers-reduced-motion: reduce) {
