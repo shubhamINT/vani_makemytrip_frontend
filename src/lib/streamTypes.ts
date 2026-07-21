@@ -46,13 +46,38 @@ export interface Hotel {
   price: string;
   priceUnit?: string;
   action: string;
+  cta?: string; // button label (defaults to "View Rooms")
 }
 
+// hotels.list, experiences.list and food.list all use this shape — the same
+// card carousel renders all three.
 export interface HotelsList {
   title?: string;
   destination?: string;
   viewAllAction?: string;
   hotels: Hotel[];
+}
+
+/* ── topic: detail.view ── */
+export interface DetailFact {
+  label: string;
+  value: string;
+}
+
+export interface DetailAction {
+  label: string;
+  action?: string; // sent verbatim on lk.chat
+  url?: string; // opens in a new tab
+  variant?: 'primary' | 'secondary';
+}
+
+export interface DetailView {
+  title: string;
+  subtitle?: string;
+  images: string[]; // gallery
+  description?: string;
+  facts?: DetailFact[];
+  actions?: DetailAction[];
 }
 
 /* ── topic: flights.list ── */
@@ -89,4 +114,28 @@ export interface TripSummaryData {
   travelers?: string;
   budget?: string;
   fullPlanAction?: string;
+}
+
+/* ── topic: booking.confirmation ── */
+export interface BookingDetail {
+  label: string;
+  value: string;
+}
+
+export interface BookingAction {
+  label: string;
+  action?: string; // sent verbatim on lk.chat
+  url?: string; // opens in a new tab (e-ticket, receipt)
+  variant?: 'primary' | 'secondary';
+}
+
+export interface BookingConfirmation {
+  kind?: 'flight' | 'hotel' | 'experience';
+  title?: string; // "Flight Booking Confirmation"
+  status?: string; // "Booking confirmed"
+  reference?: string; // "PNR ABC1234" | "PNR pending"
+  headline?: string; // "You're booked!"
+  subhead?: string; // "IndiGo 6E-620 · CCU → DEL · 08:45 departure"
+  details: BookingDetail[];
+  actions?: BookingAction[];
 }

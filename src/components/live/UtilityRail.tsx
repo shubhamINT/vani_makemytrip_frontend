@@ -5,6 +5,7 @@ import { useWeather } from '../../hooks/useWeather';
 import type { TripSummaryData } from '../../lib/streamTypes';
 import TripSummaryCard from './TripSummaryCard';
 import WeatherCard from './WeatherCard';
+import HelpCard from './HelpCard';
 
 /** Right column: fixed trip summary + live weather slots, swapped in place. */
 export default function UtilityRail() {
@@ -21,6 +22,7 @@ export default function UtilityRail() {
 
   return (
     <div className="flex min-h-0 flex-col gap-4">
+      <HelpCard />
       {summary && <TripSummaryCard summary={summary} onAction={sendAction} />}
       {weather && summary?.destination && (
         <WeatherCard weather={weather} destination={summary.destination} />

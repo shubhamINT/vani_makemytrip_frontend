@@ -10,14 +10,18 @@ import {
   CalendarDays,
   Wallet,
   FileCheck,
+  Ticket,
   type LucideIcon,
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useTopicJSON } from '../../hooks/useTopicJSON';
-import type { TripHero, HotelsList, FlightsList } from '../../lib/streamTypes';
+import { useTopicJSONList } from '../../hooks/useTopicJSONList';
+import type { TripHero, HotelsList, FlightsList, BookingConfirmation, DetailView } from '../../lib/streamTypes';
 import HeroCard from './HeroCard';
 import HotelsSection from './HotelsSection';
 import FlightsSection from './FlightsSection';
+import BookingCard from './BookingCard';
+import DetailCard from './DetailCard';
 import RelatedQueries from './RelatedQueries';
 import OpenUIEmbed from './OpenUIEmbed';
 
@@ -36,6 +40,7 @@ const TAB_ORDER = [
   'overview',
   'hotels',
   'flights',
+  'booking',
   'experiences',
   'food',
   'itinerary',
@@ -48,6 +53,7 @@ const TAB_LABELS: Record<TabKey, string> = {
   overview: 'Overview',
   hotels: 'Hotels',
   flights: 'Flights',
+  booking: 'Bookings',
   experiences: 'Experiences',
   food: 'Food',
   itinerary: 'Itinerary',
@@ -59,6 +65,7 @@ const TAB_ICONS: Record<TabKey, LucideIcon> = {
   overview: LayoutGrid,
   hotels: Hotel,
   flights: Plane,
+  booking: Ticket,
   experiences: Compass,
   food: UtensilsCrossed,
   itinerary: CalendarDays,
@@ -80,6 +87,10 @@ export default function MainStage({ connecting }: { connecting: boolean }) {
   const hero = useTopicJSON<TripHero>('trip.hero');
   const hotels = useTopicJSON<HotelsList>('hotels.list');
   const flights = useTopicJSON<FlightsList>('flights.list');
+  const experiences = useTopicJSON<HotelsList>('experiences.list');
+  const food = useTopicJSON<HotelsList>('food.list');
+  const detail = useTopicJSON<DetailView>('detail.view');
+  const bookings = useTopicJSONList<BookingConfirmation>('booking.confirmation');
 
   const [renders, setRenders] = useState<UIRender[]>([]);
   const [activeTab, setActiveTab] = useState<TabKey>('overview');
@@ -161,10 +172,21 @@ export default function MainStage({ connecting }: { connecting: boolean }) {
     if (hero || hotels || flights) present.add('overview');
     if (hotels) present.add('hotels');
     if (flights) present.add('flights');
+    if (experiences) present.add('experiences');
+    if (food) present.add('food');
+    if (bookings.length > 0) present.add('booking');
     return TAB_ORDER.filter((t) => present.has(t));
-  }, [renders, hero, hotels, flights]);
+  }, [renders, hero, hotels, flights, experiences, food, bookings.length]);
 
   const visible = useMemo(() => renders.filter((r) => r.tab === activeTab), [renders, activeTab]);
+
+  // A fresh booking confirmation pulls focus to the Bookings tab — but only on
+  // a genuine new arrival, not the initial (mock-seeded) load.
+  const bookingCount = useRef(bookings.length);
+  useEffect(() => {
+    if (bookings.length > bookingCount.current) setActiveTab('booking');
+    bookingCount.current = bookings.length;
+  }, [bookings.length]);
 
   useEffect(() => {
     requestAnimationFrame(() => {
@@ -214,6 +236,7 @@ export default function MainStage({ connecting }: { connecting: boolean }) {
             ref={t === activeTab ? bodyRef : undefined}
             className="flex h-full flex-col gap-5 overflow-y-auto pb-32 pt-4"
           >
+            {detail && <DetailCard data={detail} onAction={sendAction} />}
             {t === 'overview' && hero && <HeroCard hero={hero} />}
             {(t === 'overview' || t === 'hotels') && hotels && hotels.hotels.length > 0 && (
               <HotelsSection data={hotels} limit={t === 'overview' ? 4 : undefined} onAction={sendAction} />
@@ -221,6 +244,17 @@ export default function MainStage({ connecting }: { connecting: boolean }) {
             {(t === 'overview' || t === 'flights') && flights && flights.flights.length > 0 && (
               <FlightsSection data={flights} limit={t === 'overview' ? 3 : undefined} onAction={sendAction} />
             )}
+            {t === 'experiences' && experiences && experiences.hotels.length > 0 && (
+              <HotelsSection data={experiences} onAction={sendAction} />
+            )}
+            {t === 'food' && food && food.hotels.length > 0 && (
+              <HotelsSection data={food} onAction={sendAction} />
+            )}
+            {t === 'booking' &&
+              bookings
+                .map((b, i) => ({ b, i }))
+                .reverse()
+                .map(({ b, i }) => <BookingCard key={i} data={b} onAction={sendAction} />)}
             {renders
               .filter((r) => r.tab === t)
               .map((e) => (

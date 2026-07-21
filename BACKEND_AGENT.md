@@ -1,35 +1,47 @@
 # Backend agent contract — MakeMyTrip AI Travel Concierge
 
-Hand this to the backend/agent developer. It defines everything the LiveKit agent
-must provide so the frontend (this repo) works: the token endpoint, the room topics,
-and the **hybrid rendering protocol** — typed JSON topics for structured data
-(hotels, flights, hero), and openui-lang for long-tail content.
+What the LiveKit agent must provide so this frontend works: token endpoint, room
+topics, and the payload schema for each topic.
 
-**Important:** The frontend now uses hybrid rendering. Hotel/flight search results
-**must** be sent as typed JSON topics (not openui-lang). openui-lang remains only for
-experiences, food, itinerary, budget, visa, booking confirmations, charts, and
-open-ended answers. See the routing rule in §5.
+Rendering is hybrid:
+- **Typed JSON topics** for structured data: `trip.hero`, `hotels.list`, `flights.list`, `trip.summary`, `booking.confirmation`.
+- **openui-lang** (`ui.render`) for long-tail only: experiences, food, itinerary, budget, visa, charts, open-ended answers.
+
+---
+
+## 0. What feeds each UI area
+
+These render automatically once the topic is sent. If not sent, the area stays absent.
+
+| UI area | Fed by |
+|---|---|
+| Destination hero banner (Overview) | `trip.hero` |
+| Trip Summary card (right rail) | `trip.summary` |
+| Weather card (right rail) | client-side from `trip.summary.destination` (Open-Meteo) |
+| Hotel results | `hotels.list` |
+| Flight results | `flights.list` |
+| Booking / e-ticket card | `booking.confirmation` |
 
 ---
 
 ## 1. Token endpoint
 
-The frontend calls `POST {VITE_TOKEN_ENDPOINT}`:
+Frontend calls `POST {VITE_TOKEN_ENDPOINT}`.
 
 Request:
 ```json
 { "agent_name": "Vani-makemytrip", "id": "optional-user-id" }
 ```
-- `agent_name` — room naming + persona. Frontend sends `VITE_AGENT_NAME` (currently `Vani-makemytrip`).
-- `id` — optional user id; if set, load the traveler's context (past trips, preferences).
+- `agent_name` — room naming + persona (frontend sends `VITE_AGENT_NAME`).
+- `id` — optional user id; if set, load traveler context.
 
 Response (envelope; flat `{token,url}` also accepted):
 ```json
 { "success": true, "message": "token created",
   "data": { "token": "eyJ...", "url": "wss://your-livekit-host", "room": "..." } }
 ```
-- Mint the token **and dispatch the agent into the room** before responding.
-- Return `502` if dispatch fails — the frontend shows a retry state.
+- Mint token **and dispatch the agent into the room** before responding.
+- Return `502` if dispatch fails.
 - CORS: allow the site origin.
 
 ---
@@ -38,42 +50,26 @@ Response (envelope; flat `{token,url}` also accepted):
 
 | Direction | Topic | Payload | Meaning |
 |---|---|---|---|
-| agent → user | audio track | — | spoken replies (agent greets first) |
+| agent → user | audio track | — | spoken replies (greet first) |
 | both | `lk.transcription` | reserved | live captions (LiveKit-managed, do not write) |
-| user → agent | `lk.chat` | text | typed messages **and booking/action strings** (see §6) |
-| agent → user | `trip.hero` | JSON (readAll + parse) | destination hero banner card |
-| agent → user | `hotels.list` | JSON (readAll + parse) | hotel search results carousel |
-| agent → user | `flights.list` | JSON (readAll + parse) | flight search results section |
-| agent → user | `trip.summary` | JSON (readAll + parse) | trip summary card in the utility rail |
-| agent → user | `ui.render` | raw openui-lang text | **long-tail only** — experiences, food, itinerary, budget, visa, bookings, charts |
+| user → agent | `lk.chat` | text | typed messages + button/action strings (§9) |
+| agent → user | `trip.hero` | JSON | destination hero banner |
+| agent → user | `hotels.list` | JSON | hotel results carousel |
+| agent → user | `flights.list` | JSON | flight results list |
+| agent → user | `trip.summary` | JSON | trip summary card (right rail) |
+| agent → user | `booking.confirmation` | JSON | confirmed booking / e-ticket card |
+| agent → user | `ui.render` | openui-lang text | long-tail content (see §10) |
 
-Each typed JSON topic (`trip.hero`, `hotels.list`, `flights.list`, `trip.summary`)
-is a **single JSON snapshot per stream** — the frontend calls `readAll()` then parses.
-Every re-send replaces the previous value on that topic.
-
-`ui.render` streams carry two **attributes** the dashboard uses:
-- `tab` — one of `overview / hotels / flights / experiences / food / itinerary / budget / visa` (which dashboard tab to file the render under; untagged → overview).
-- `title` — a short heading shown above the render (e.g. `"Kolkata Street Food Tour"`).
-
-`trip.summary` — existing fields unchanged; add optional
-`"fullPlanAction"` (string, powers "View Full Plan →" button; frontend default:
-`"Show me the full trip plan"` if absent). Example:
-```json
-{"destination":"Kolkata","dates":"24–26 May 2025","duration":"2 nights / 3 days","travelers":"2 adults","budget":"₹28,000 – ₹32,000","fullPlanAction":"Show me the full trip plan for Kolkata"}
-```
-
-Rules:
-- Greet first with a short spoken line.
-- When data is better **shown** than spoken (search results, a confirmation, an
-  itinerary), send the appropriate typed JSON topic or openui-lang render.
-  Say a short line too ("Here are your options") so voice users look at the screen.
-- **No persistence** — all topics/transcripts are realtime only. Persist server-side.
+- Each typed JSON topic is **one snapshot per stream** — frontend `readAll()` + parse. Re-send replaces the previous value.
+- `ui.render` streams carry two attributes: `tab` (`overview / hotels / flights / experiences / food / itinerary / budget / visa`; untagged → overview) and `title` (heading shown above the render).
+- Greet with a short spoken line. When data is better shown than spoken, send the topic **and** say a short line ("Here are your options").
+- No persistence — topics/transcripts are realtime only. Persist server-side.
 
 ---
 
-## 3. Typed JSON topics — `trip.hero`
+## 3. `trip.hero`
 
-Sent once when the destination is known. Renders the hero banner card in the overview tab.
+Sent once the destination is known.
 
 ```json
 {
@@ -88,16 +84,13 @@ Sent once when the destination is known. Renders the hero banner card in the ove
   "related": ["Best time to visit Kolkata", "3-day Kolkata itinerary"]
 }
 ```
-
 - `icon` enum: `sun | cloud | calendar | tag | wallet | thermometer | umbrella` (unknown → generic dot).
-- `stats` ≤ 4, `related` ≤ 5 short strings (clicking one sends it as a chat message).
+- `stats` ≤ 4; `related` ≤ 5 (clicking one sends it as a chat message).
 - Image: 1600×600 WebP q75–80, ≤ 200 KB.
 
 ---
 
-## 4. Typed JSON topics — `hotels.list`
-
-Sent when hotel search results arrive. Renders as a carousel in the overview + full list in the Hotels tab.
+## 4. `hotels.list`
 
 ```json
 {
@@ -119,18 +112,14 @@ Sent when hotel search results arrive. Renders as a carousel in the overview + f
   }]
 }
 ```
-
-- `badge`, `rating`, `reviews`, `location`, `amenities` optional.
-- `amenities` ≤ 3 shown; 3–8 hotels (overview shows first 4, Hotels tab shows all).
-- `action` powers the blue "View Rooms" button — sent verbatim back on `lk.chat`.
-- `viewAllAction` powers the "View all" link — sent verbatim back on `lk.chat`.
-- Image: 640×480 WebP q75, ≤ 60 KB per hotel.
+- `badge`, `rating`, `reviews`, `location`, `amenities` optional. `amenities` ≤ 3 shown.
+- 3–8 hotels (Overview shows first 4, Hotels tab all).
+- `action` → "View Rooms" button; `viewAllAction` → "View all" link. Both sent verbatim on `lk.chat`.
+- Image: 640×480 WebP q75, ≤ 60 KB.
 
 ---
 
-## 5. Typed JSON topics — `flights.list`
-
-Sent when flight search results arrive. Renders as a staggered list in the overview + full list in the Flights tab.
+## 5. `flights.list`
 
 ```json
 {
@@ -151,74 +140,95 @@ Sent when flight search results arrive. Renders as a staggered list in the overv
   }]
 }
 ```
-
-- `tag` optional → shown as a green "Lowest fare" badge.
-- `logo` optional → fallback = airline-initials avatar.
-- 2–6 rows (overview shows first 3, Flights tab shows all).
-- `action` powers the "Book" button — sent verbatim back on `lk.chat`.
-- Logo: 96×96 WebP/PNG/SVG, ≤ 10 KB per airline.
+- `tag` optional → green badge. `logo` optional → airline-initials fallback.
+- 2–6 rows (Overview shows first 3, Flights tab all).
+- `action` → "Book" button, sent verbatim on `lk.chat`.
+- Logo: 96×96 WebP/PNG/SVG, ≤ 10 KB.
 
 ---
 
-## 6. Routing rule — typed JSON vs openui-lang
+## 6. `trip.summary`
 
-| Scenario | Topic |
-|---|---|
-| Hotel search results | `hotels.list` |
-| Flight search results | `flights.list` |
-| Destination hero card | `trip.hero` |
-| Trip summary sidebar | `trip.summary` |
-| Experiences, food, itinerary, budget, visa | `ui.render` (openui-lang) |
-| Booking confirmations, charts, open-ended answers | `ui.render` (openui-lang) |
-
-**Stop emitting openui-lang for hotel and flight search results.** Use the typed JSON
-topics above. Every button `action` string is sent back verbatim on `lk.chat` (same
-semantics as `@ToAssistant(...)`) — must be self-sufficient (name + dates + pax).
+```json
+{
+  "destination": "Kolkata",
+  "dates": "24–26 May 2025",
+  "duration": "2 nights / 3 days",
+  "travelers": "2 adults",
+  "budget": "₹28,000 – ₹32,000",
+  "fullPlanAction": "Show me the full trip plan for Kolkata"
+}
+```
+- All fields optional; present fields show their row.
+- `destination` also seeds the Weather card — send as soon as known.
+- `fullPlanAction` → "View Full Plan →" button (default `"Show me the full trip plan"`), sent verbatim on `lk.chat`.
 
 ---
 
-## 7. Image requirements
+## 7. `booking.confirmation`
 
-All image URLs must be HTTPS only (mixed content blocked), actually resolvable,
-and include meaningful `alt` text. Prefer CDN resize params (`?w=640&q=75&fm=webp`).
+Send after a booking succeeds.
+
+```json
+{
+  "kind": "flight",
+  "title": "Flight Booking Confirmation",
+  "status": "Booking confirmed",
+  "reference": "PNR ABC1234",
+  "headline": "You're going to Delhi!",
+  "subhead": "IndiGo 6E-620 · Kolkata to Delhi · 08:20 CCU → 09:45 DEL",
+  "details": [
+    { "label": "Seat", "value": "23A" },
+    { "label": "Departure", "value": "08:20 from CCU" },
+    { "label": "Arrival", "value": "09:45 at DEL" },
+    { "label": "Passengers", "value": "2 Adults" }
+  ],
+  "actions": [
+    { "label": "View e-ticket", "url": "https://.../eticket/ABC1234", "variant": "primary" },
+    { "label": "Add to calendar", "action": "Add my Delhi flight to my calendar", "variant": "secondary" }
+  ]
+}
+```
+- `kind` — `flight | hotel | experience` (header icon; default flight).
+- `title`, `status`, `reference`, `headline`, `subhead` optional but recommended. `status` shows a green check; `reference` shows as a mono chip (use `"PNR pending"` before issuance); `headline` + `subhead` show in a green highlight block.
+- `details` — ordered label/value rows (numbered chips). ~3–6.
+- `actions` (≤ 3) — each has either `url` (opens new tab) or `action` (sent verbatim on `lk.chat`); `variant` `primary` | `secondary`.
+- Re-send to update in place (e.g. `"PNR pending"` then the real PNR).
+
+---
+
+## 8. Image requirements
+
+HTTPS only, resolvable, meaningful `alt`. Prefer CDN resize params (`?w=640&q=75&fm=webp`).
 
 | Asset | Aspect | Send (2x) | Format | Budget |
 |---|---|---|---|---|
-| Hero banner | ~8:3 | **1600×600** | WebP q75–80 | ≤ 200 KB |
-| Hotel card thumb | 4:3 | **640×480** | WebP q75 | ≤ 60 KB |
-| Airline logo | 1:1 | **96×96** | WebP/PNG alpha (SVG ideal) | ≤ 10 KB |
+| Hero banner | ~8:3 | 1600×600 | WebP q75–80 | ≤ 200 KB |
+| Hotel thumb | 4:3 | 640×480 | WebP q75 | ≤ 60 KB |
+| Airline logo | 1:1 | 96×96 | WebP/PNG alpha (SVG ideal) | ≤ 10 KB |
 
 `Cache-Control: public, max-age=31536000, immutable` recommended.
 
 ---
 
-## 8. Booking round-trip — how actions come back
+## 9. Button actions round-trip
 
-Buttons carry an `Action(...)`. When the user clicks one, the frontend does:
+Every card button's string comes back as a normal `lk.chat` message.
+- Action with `url` → frontend opens URL in a new tab (e-tickets, receipts, payment).
+- Action with `action` → sent to the agent on `lk.chat`.
 
-- `@OpenUrl("...")` → opens the URL in a new tab (use for e-tickets, receipts, payment pages).
-- `@ToAssistant("...")` → sends that text back to the agent **on `lk.chat`** as a normal
-  user message.
-
-So a "Book" button becomes an incoming chat message like `"Book Hotel Plaza Athénée"`.
-The agent must handle these strings: confirm details, run the booking tool, then stream a
-**confirmation `ui.render`** (the ticket pattern above). Write action strings to be
-self-sufficient — include enough to identify the item (name, flight number, time), since
-they arrive with no extra structured payload.
-
-Payment/checkout that must happen in-browser → send the user to a URL with `@OpenUrl`.
+A "Book" button arrives as e.g. `"Book IndiGo 6E 2041, …"`. Agent confirms, runs the
+booking tool, then sends a `booking.confirmation` snapshot (§7). Write action strings
+self-sufficient — include name + flight number + dates + pax, since no extra structured
+payload accompanies them. In-browser checkout → use a `url` action.
 
 ---
 
-## 9. Allowed components — openui-lang (for `ui.render` long-tail only)
+## 10. openui-lang components (`ui.render` only)
 
-The following applies only to `ui.render` topics (experiences, food, itinerary,
-budget, visa, booking confirmations, charts, open-ended answers). Do **not** use
-these for hotel/flight search results — use the typed JSON topics in §3–5 instead.
-
-Emit only these. Argument order matters (positional). Verify new shapes with the parser
-before shipping (`createParser(openuiChatLibrary.toJSONSchema(), "Card").parse(src)`,
-check `result.meta.errors`).
+For experiences, food, itinerary, budget, visa, charts, open-ended answers. Emit only
+these; argument order is positional. Verify shapes with the parser before shipping
+(`createParser(openuiChatLibrary.toJSONSchema(), "Card").parse(src)`, check `result.meta.errors`).
 
 ```
 Card, CardHeader, TextContent, MarkDownRenderer, Callout, TextCallout,
@@ -231,10 +241,9 @@ BarChart, LineChart, AreaChart, PieChart, RadarChart, RadialChart, ScatterChart,
 HorizontalBarChart, SingleStackedBarChart, Series, Point, ScatterSeries, Slice, CodeBlock
 ```
 
-Key signatures to watch (source of the mistakes above):
-- `Image(alt, src)` — **alt is first**.
-- `Tag(text, icon, size, variant)` — variant is 4th; pass `null` for skipped middle args.
+Signatures to watch:
+- `Image(alt, src)` — alt first.
+- `Tag(text, icon, size, variant)` — variant 4th; pass `null` for skipped middle args.
 - `CardHeader(title, subtitle)`, `Button(label, action, variant, type, size)`.
-- `Carousel(children, variant)` — children are components (nest `Card`s for hotel/flight cards).
+- `Carousel(children, variant)` — children are components.
 - Actions: `@ToAssistant(message)`, `@OpenUrl(url)`, wrapped in `Action([...])`.
-```

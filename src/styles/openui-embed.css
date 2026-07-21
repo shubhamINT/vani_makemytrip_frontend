@@ -18,12 +18,26 @@
 }
 
 /* Carousel: let openui's own hidden scrollbar + edge mask + nav buttons work.
-   (The old override re-enabled a thin scrollbar — that was the ugly bar.) */
+   (The old override re-enabled a thin scrollbar — that was the ugly bar.)
+   Match the native HotelsSection track: equal 16px gaps, centered when the
+   cards fit, start-aligned + scrollable when they overflow (`safe center`). */
 .openui-embed .openui-carousel-content {
   scrollbar-width: none;
+  display: flex;
+  gap: 16px;
+  justify-content: safe center;
 }
 .openui-embed .openui-carousel-content::-webkit-scrollbar {
   display: none;
+}
+
+/* Give carousel cards the native HotelCard footprint (w-[272px], never shrink)
+   so restaurant/experience results read as the same card family. Scoped to
+   carousel items so standalone cards (itinerary/budget/visa) stay full-width. */
+.openui-embed .openui-carousel-content .openui-card {
+  width: 272px;
+  max-width: 272px;
+  flex: 0 0 auto;
 }
 .openui-embed .openui-carousel-button {
   border: 1px solid var(--line);

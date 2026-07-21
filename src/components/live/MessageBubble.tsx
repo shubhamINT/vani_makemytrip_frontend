@@ -1,5 +1,6 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { Mic } from 'lucide-react';
 
 const fmtTime = (ts: number) =>
   new Date(ts).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
@@ -28,14 +29,22 @@ export default function MessageBubble({
   }
 
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-[11px] font-bold text-muted">{agentName}</span>
-      <div className="max-w-[92%] text-[13px] leading-relaxed text-ink">
-        <div className="mmt-md">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+    <div className="flex items-start gap-2">
+      <span
+        className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-coral-soft text-coral-ink"
+        aria-hidden="true"
+      >
+        <Mic className="size-3" />
+      </span>
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <span className="text-[11px] font-bold text-muted">{agentName}</span>
+        <div className="max-w-[92%] rounded-2xl rounded-tl-md bg-paper-2 px-3.5 py-2.5 text-[13px] leading-relaxed text-ink">
+          <div className="mmt-md">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
+          </div>
         </div>
+        <span className="pl-1 text-[10px] font-medium text-faint">{fmtTime(timestamp)}</span>
       </div>
-      <span className="text-[10px] font-medium text-faint">{fmtTime(timestamp)}</span>
     </div>
   );
 }

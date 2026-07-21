@@ -35,12 +35,6 @@ export default function LiveHeader({ conn, onReset }: { conn: ConnState; onReset
         aria-label="MakeMyTrip — Myra AI Concierge. End session and start over."
       >
         <img src={MMT_LOGO} alt="MakeMyTrip" className="h-8 w-auto" />
-        <span className="hidden items-center gap-1 rounded-full bg-coral-soft px-2.5 py-1 text-[10px] font-bold tracking-[0.08em] text-coral-ink sm:inline-flex">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" width="11" height="11">
-            <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V22h2v-3.08A7 7 0 0 0 19 12h-2Z" />
-          </svg>
-          MYRA AI CONCIERGE
-        </span>
       </button>
 
       <div className="flex items-center gap-2">

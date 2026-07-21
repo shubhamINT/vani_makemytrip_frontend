@@ -83,7 +83,7 @@ export default function HotelCard({ hotel, onAction }: { hotel: Hotel; onAction:
             <span className="text-xs font-medium text-faint">{hotel.priceUnit ?? '/ night'}</span>
           </p>
           <Button size="sm" onClick={() => onAction(hotel.action)}>
-            View Rooms
+            {hotel.cta ?? 'View Rooms'}
           </Button>
         </div>
       </div>

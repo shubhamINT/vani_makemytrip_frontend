@@ -21,8 +21,11 @@ export function useConversation(): ConversationLine[] {
 
   return useMemo<ConversationLine[]>(() => {
     if (MOCK) return mockChat; // dev preview
+    // Known local identities never count as the agent — this keeps a user's
+    // own typed message on the user side even before localParticipant resolves.
+    const LOCAL_IDS = new Set(['', 'web-user', localIdentity].filter(Boolean) as string[]);
     const isAgent = (identity: string) =>
-      localIdentity ? identity !== localIdentity : identity !== '' && identity !== 'web-user';
+      localIdentity ? identity !== localIdentity : !LOCAL_IDS.has(identity);
 
     const result: ConversationLine[] = [];
     for (const msg of chatMessages) {

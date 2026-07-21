@@ -125,31 +125,34 @@ export default function VoiceDock({
           </Button>
         </span>
 
-        {ready && state && state !== 'disconnected' && (
-          <span className="hidden shrink-0 items-center gap-1.5 pl-1 text-xs font-semibold text-muted sm:flex">
-            <span className="relative flex size-1.5">
-              {STATE_DOT[state] && (
-                <span
-                  className={`absolute inline-flex size-full rounded-full opacity-60 motion-safe:animate-ping ${STATE_DOT[state]}`}
-                />
-              )}
+        {/* Status + waveform live in fixed-width slots that are always mounted
+            once connected, so swapping state/label never resizes the input or
+            shifts the controls. Only their inner content animates. */}
+        <span className="hidden w-[84px] shrink-0 items-center gap-1.5 pl-1 text-xs font-semibold text-muted sm:flex">
+          <span className="relative flex size-1.5">
+            {ready && STATE_DOT[state] && (
               <span
-                className={`relative inline-flex size-1.5 rounded-full ${STATE_DOT[state] ?? 'bg-faint'}`}
+                className={`absolute inline-flex size-full rounded-full opacity-60 motion-safe:animate-ping ${STATE_DOT[state]}`}
               />
-            </span>
-            {STATE_LABEL[state] ?? ''}
+            )}
+            <span
+              className={`relative inline-flex size-1.5 rounded-full ${(ready && STATE_DOT[state]) || 'bg-faint'}`}
+            />
           </span>
-        )}
+          <span className="truncate">{ready ? STATE_LABEL[state] ?? 'Ready' : 'Connecting'}</span>
+        </span>
 
-        {ready && state === 'speaking' && vizTrack && (
-          <BarVisualizer
-            state={state}
-            trackRef={vizTrack}
-            barCount={7}
-            options={{ minHeight: 8 }}
-            className="hidden h-[22px] w-12 shrink-0 text-coral [--lk-fg:currentColor] data-[lk-va-state=listening]:text-sky-brand sm:block"
-          />
-        )}
+        <span className="hidden h-[22px] w-12 shrink-0 items-center justify-center sm:flex" aria-hidden="true">
+          {ready && vizTrack && (
+            <BarVisualizer
+              state={state}
+              trackRef={vizTrack}
+              barCount={7}
+              options={{ minHeight: 8 }}
+              className="h-full w-full text-coral [--lk-fg:currentColor] data-[lk-va-state=listening]:text-sky-brand"
+            />
+          )}
+        </span>
 
         <input
           ref={inputRef}
