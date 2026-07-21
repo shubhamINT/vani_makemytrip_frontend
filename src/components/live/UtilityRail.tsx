@@ -5,9 +5,8 @@ import { useWeather } from '../../hooks/useWeather';
 import type { TripSummaryData } from '../../lib/streamTypes';
 import TripSummaryCard from './TripSummaryCard';
 import WeatherCard from './WeatherCard';
-import HelpCard from './HelpCard';
 
-/** Right column: trip summary, live weather, help — quiet utility cards. */
+/** Right column: fixed trip summary + live weather slots, swapped in place. */
 export default function UtilityRail() {
   const { send } = useChat();
   const summary = useTopicJSON<TripSummaryData>('trip.summary');
@@ -21,12 +20,11 @@ export default function UtilityRail() {
   );
 
   return (
-    <div className="flex min-h-0 flex-col gap-4 overflow-y-auto pb-32">
+    <div className="flex min-h-0 flex-col gap-4">
       {summary && <TripSummaryCard summary={summary} onAction={sendAction} />}
       {weather && summary?.destination && (
         <WeatherCard weather={weather} destination={summary.destination} />
       )}
-      <HelpCard />
     </div>
   );
 }

@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useVoiceAssistant } from '@livekit/components-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { Sparkles } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 import { useConversation } from '../../hooks/useConversation';
 import MessageBubble from './MessageBubble';
 import ThinkingChecklist from './ThinkingChecklist';
@@ -21,24 +19,14 @@ export default function ChatPanel({ agentName }: { agentName: string }) {
   }, [lines.length, thinking]);
 
   return (
-    <Card className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="flex items-center gap-2.5 border-b border-line px-4 py-3">
-        <span
-          className="flex size-8 items-center justify-center rounded-full text-white shadow-card"
-          style={{ background: 'var(--hero-orb)' }}
-          aria-hidden="true"
-        >
-          <Sparkles className="size-4" />
-        </span>
-        <div>
-          <p className="font-display text-sm font-bold text-ink">{agentName} Conversation</p>
-          <p className="text-[11px] text-faint">Your AI travel concierge</p>
-        </div>
+    <div className="flex h-full min-h-0 flex-col lg:border-r lg:border-line">
+      <div className="border-b border-line px-2 py-3">
+        <p className="font-display text-sm font-bold text-ink">{agentName} Conversation</p>
       </div>
 
       <div
         ref={feedRef}
-        className="flex flex-1 flex-col gap-3.5 overflow-y-auto px-4 py-4"
+        className="flex flex-1 flex-col gap-4 overflow-y-auto px-2 py-4"
         aria-live="polite"
       >
         {lines.length === 0 && !thinking ? (
@@ -69,7 +57,7 @@ export default function ChatPanel({ agentName }: { agentName: string }) {
           )}
         </AnimatePresence>
       </div>
-    </Card>
+    </div>
   );
 }
 

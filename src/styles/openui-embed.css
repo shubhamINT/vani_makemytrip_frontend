@@ -3,15 +3,13 @@
    bespoke sections. Scoped to .openui-embed. Targets the real openui DOM
    classes from @openuidev/react-ui. */
 
+/* Transparent section — no outer surface. openui's own inner cards carry the
+   card look, so wrapping them in another bordered box read as box-in-box. */
 .openui-embed {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  padding: 18px clamp(14px, 2vw, 22px) 20px;
+  padding: 0;
 }
 .openui-embed .openui-embed-title {
-  margin: 0 0 12px;
+  margin: 0 0 14px;
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 18px;

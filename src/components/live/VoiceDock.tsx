@@ -99,22 +99,8 @@ export default function VoiceDock({
     <div className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex justify-center px-4">
       <form
         onSubmit={submit}
-        className="pointer-events-auto flex w-[min(94vw,620px)] max-w-full items-center gap-1.5 overflow-hidden rounded-full border border-line bg-surface/95 py-2 pl-2 pr-2 shadow-float backdrop-blur-md focus-within:border-sky-brand/60"
+        className="pointer-events-auto flex w-[min(94vw,560px)] max-w-full items-center gap-2 overflow-hidden rounded-full border border-line bg-surface/95 py-2 pl-2.5 pr-2 shadow-float backdrop-blur-md focus-within:border-sky-brand/60"
       >
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={onToggleSpeaker}
-          disabled={!ready}
-          aria-pressed={speakerMuted}
-          aria-label={speakerMuted ? 'Unmute concierge audio' : 'Mute concierge audio'}
-          title={speakerMuted ? 'Unmute sound' : 'Mute sound'}
-          className={speakerMuted ? 'text-faint' : 'text-muted'}
-        >
-          {speakerMuted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
-        </Button>
-
         <span className="relative flex">
           {listening && !reduced && (
             <motion.span
@@ -155,7 +141,7 @@ export default function VoiceDock({
           </span>
         )}
 
-        {ready && vizTrack && (
+        {ready && state === 'speaking' && vizTrack && (
           <BarVisualizer
             state={state}
             trackRef={vizTrack}
@@ -188,13 +174,28 @@ export default function VoiceDock({
 
         <Button
           type="button"
+          variant="ghost"
+          size="icon"
+          onClick={onToggleSpeaker}
+          disabled={!ready}
+          aria-pressed={speakerMuted}
+          aria-label={speakerMuted ? 'Unmute concierge audio' : 'Mute concierge audio'}
+          title={speakerMuted ? 'Unmute sound' : 'Mute sound'}
+          className={`size-9 ${speakerMuted ? 'text-faint' : 'text-muted'}`}
+        >
+          {speakerMuted ? <VolumeX className="size-4.5" /> : <Volume2 className="size-4.5" />}
+        </Button>
+
+        <Button
+          type="button"
           variant="danger"
           size="icon"
           onClick={onDisconnect}
           aria-label="End session"
           title="End session"
+          className="size-9"
         >
-          <PhoneOff className="size-4.5" />
+          <PhoneOff className="size-4" />
         </Button>
       </form>
     </div>,
