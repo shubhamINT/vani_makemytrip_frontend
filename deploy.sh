@@ -17,5 +17,5 @@ docker compose up -d --build --wait
 
 # Cleanup
 echo "Cleaning up..."
-docker system prune -f
+docker system prune -a -f
 echo "Deployment completed successfully."
