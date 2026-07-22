@@ -54,8 +54,8 @@ export default function HotelsSection({
       <div className="relative">
         <div ref={emblaRef} className="overflow-hidden">
           <div className={`flex gap-4${!canPrev && !canNext ? ' justify-center' : ''}`}>
-            {hotels.map((h) => (
-              <HotelCard key={h.id} hotel={h} onAction={onAction} />
+            {hotels.map((h, i) => (
+              <HotelCard key={h.id} hotel={h} index={i} onAction={onAction} />
             ))}
           </div>
         </div>

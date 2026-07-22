@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { ChevronUp } from 'lucide-react';
 import { useVoiceAssistant } from '@livekit/components-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useConversation } from '../../hooks/useConversation';
@@ -11,6 +12,7 @@ export default function ChatPanel({ agentName }: { agentName: string }) {
   const thinking = useThinking();
   const reduced = useReducedMotion();
   const feedRef = useRef<HTMLDivElement>(null);
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     requestAnimationFrame(() => {
@@ -19,19 +21,28 @@ export default function ChatPanel({ agentName }: { agentName: string }) {
   }, [lines.length, thinking]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col lg:border-r lg:border-line">
-      <div className="border-b border-line px-2 py-3">
-        <span className="inline-flex items-center gap-1 rounded-full bg-coral-soft px-2.5 py-1 text-[10px] font-bold tracking-[0.08em] text-coral-ink">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" width="11" height="11">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="flex items-center justify-between border-b border-line px-3.5 py-3">
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-bold tracking-[0.08em] text-coral-ink">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" width="12" height="12">
             <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V22h2v-3.08A7 7 0 0 0 19 12h-2Z" />
           </svg>
           MYRA AI CONCIERGE
         </span>
+        <button
+          type="button"
+          onClick={() => setCollapsed((c) => !c)}
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? 'Expand conversation' : 'Collapse conversation'}
+          className="flex size-6 items-center justify-center rounded-full text-faint transition-colors hover:bg-paper-2 hover:text-ink"
+        >
+          <ChevronUp className={`size-4 transition-transform ${collapsed ? 'rotate-180' : ''}`} />
+        </button>
       </div>
 
       <div
         ref={feedRef}
-        className="flex flex-1 flex-col gap-4 overflow-y-auto px-2 py-4"
+        className={`flex-1 flex-col gap-4 overflow-y-auto px-2 py-4 ${collapsed ? 'hidden' : 'flex'}`}
         aria-live="polite"
       >
         {lines.length === 0 && !thinking ? (

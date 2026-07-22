@@ -6,6 +6,34 @@ import { Card } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import type { Flight, FlightsList } from '../../lib/streamTypes';
 
+// Airline name → IATA carrier code, for logos when the flight number is absent.
+const AIRLINE_IATA: Record<string, string> = {
+  indigo: '6E',
+  'air india': 'AI',
+  'air india express': 'IX',
+  vistara: 'UK',
+  spicejet: 'SG',
+  akasa: 'QP',
+  'akasa air': 'QP',
+  'go first': 'G8',
+  goair: 'G8',
+  'alliance air': '9I',
+};
+
+/** IATA carrier code from the flight number prefix ("6E 2041" → "6E") or airline name. */
+function carrierCode(flight: Flight): string | null {
+  const prefix = flight.flightNo?.trim().match(/^([A-Z0-9]{2})/i)?.[1];
+  if (prefix) return prefix.toUpperCase();
+  return AIRLINE_IATA[flight.airline.trim().toLowerCase()] ?? null;
+}
+
+/** Real airline logo URL (falls back to the payload's logo, then to initials). */
+function logoUrl(flight: Flight): string | undefined {
+  if (flight.logo) return flight.logo;
+  const code = carrierCode(flight);
+  return code ? `https://pics.avs.io/120/120/${code}.png` : undefined;
+}
+
 /** "Recommended Flights": airline, times, duration ornament, price + fare tag. */
 export default function FlightsSection({
   data,
@@ -50,13 +78,14 @@ export default function FlightsSection({
 
 function FlightRow({ flight, onAction }: { flight: Flight; onAction: (a: string) => void }) {
   const [logoOk, setLogoOk] = useState(true);
+  const logo = logoUrl(flight);
 
   return (
     <Card className="flex items-center gap-4 px-4 py-3 transition-shadow hover:shadow-float">
       <div className="flex w-32 min-w-0 shrink-0 items-center gap-2.5">
         <Avatar className="size-9 border border-line bg-surface">
-          {flight.logo && logoOk ? (
-            <AvatarImage src={flight.logo} alt="" onError={() => setLogoOk(false)} />
+          {logo && logoOk ? (
+            <AvatarImage src={logo} alt="" className="object-contain p-1" onError={() => setLogoOk(false)} />
           ) : null}
           <AvatarFallback className="bg-sky-soft text-sky-brand">
             {flight.airline.slice(0, 2).toUpperCase()}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
 import { ImageOff } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,7 +39,13 @@ export default function DetailCard({
   data: DetailView;
   onAction: (a: string) => void;
 }) {
+  const reduced = useReducedMotion();
   return (
+    <motion.div
+      initial={reduced ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+    >
     <Card className="flex flex-col gap-4 overflow-hidden p-4">
       <header>
         <h2 className="font-display text-xl font-bold text-ink">{data.title}</h2>
@@ -84,5 +91,6 @@ export default function DetailCard({
         </div>
       )}
     </Card>
+    </motion.div>
   );
 }

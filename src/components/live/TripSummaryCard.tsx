@@ -19,8 +19,6 @@ export default function TripSummaryCard({
   summary: TripSummaryData;
   onAction: (a: string) => void;
 }) {
-  const rows = ROWS.filter((r) => summary[r.key]);
-
   return (
     <Card className="p-4">
       <div className="mb-2 flex items-start justify-between gap-2">
@@ -36,12 +34,17 @@ export default function TripSummaryCard({
       </div>
 
       <dl className="divide-y divide-line">
-        {rows.map((r) => (
-          <div key={r.key} className="flex items-baseline justify-between gap-3 py-2.5">
-            <dt className="text-xs font-medium text-faint">{r.label}</dt>
-            <dd className="text-right text-[13px] font-semibold text-ink">{summary[r.key]}</dd>
-          </div>
-        ))}
+        {ROWS.map((r) => {
+          const value = summary[r.key];
+          return (
+            <div key={r.key} className="flex items-baseline justify-between gap-3 py-2.5">
+              <dt className="text-xs font-medium text-faint">{r.label}</dt>
+              <dd className={`text-right text-[13px] font-semibold ${value ? 'text-ink' : 'text-faint'}`}>
+                {value ?? 'TBD'}
+              </dd>
+            </div>
+          );
+        })}
       </dl>
 
       <Button

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
 import { Star, MapPin, Coffee, ShieldCheck, Sparkles } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,11 +15,26 @@ const AMENITY_ICONS: Array<[RegExp, typeof Coffee]> = [
 const amenityIcon = (label: string) => AMENITY_ICONS.find(([re]) => re.test(label))?.[1];
 
 /** One hotel in the carousel: image, name, rating, location, amenities, price + CTA. */
-export default function HotelCard({ hotel, onAction }: { hotel: Hotel; onAction: (a: string) => void }) {
+export default function HotelCard({
+  hotel,
+  onAction,
+  index = 0,
+}: {
+  hotel: Hotel;
+  onAction: (a: string) => void;
+  index?: number;
+}) {
   const [imgOk, setImgOk] = useState(true);
+  const reduced = useReducedMotion();
 
   return (
-    <Card className="flex w-[272px] shrink-0 snap-start flex-col overflow-hidden p-0 transition-shadow hover:shadow-float">
+    <motion.div
+      className="w-[272px] shrink-0 snap-start"
+      initial={reduced ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: reduced ? 0 : index * 0.06, ease: 'easeOut' }}
+    >
+    <Card className="flex h-full flex-col overflow-hidden p-0 transition-shadow hover:shadow-float">
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-paper-2">
         {hotel.image?.src && imgOk ? (
           <img
@@ -88,5 +104,6 @@ export default function HotelCard({ hotel, onAction }: { hotel: Hotel; onAction:
         </div>
       </div>
     </Card>
+    </motion.div>
   );
 }

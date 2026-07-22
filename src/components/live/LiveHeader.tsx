@@ -26,7 +26,7 @@ export default function LiveHeader({ conn, onReset }: { conn: ConnState; onReset
   };
 
   return (
-    <header className="flex items-center justify-between gap-4 px-5 py-3">
+    <header className="flex items-center justify-between gap-4 border-b border-line bg-surface px-5 py-3">
       <button
         type="button"
         className="flex items-center gap-3 rounded-xl"

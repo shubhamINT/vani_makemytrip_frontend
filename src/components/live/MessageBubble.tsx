@@ -1,16 +1,18 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Mic } from 'lucide-react';
+import { Mic, CheckCheck } from 'lucide-react';
 
 const fmtTime = (ts: number) =>
   new Date(ts).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
 
-/** One conversation turn: user = blue right-aligned, agent = white with avatar. */
+// The concierge persona is always "Myra" regardless of the raw agent identity.
+const PERSONA = 'Myra';
+
+/** One conversation turn: user = blue right-aligned, agent = gray with avatar. */
 export default function MessageBubble({
   text,
   isAgent,
   timestamp,
-  agentName,
 }: {
   text: string;
   isAgent: boolean;
@@ -23,7 +25,10 @@ export default function MessageBubble({
         <div className="max-w-[85%] rounded-2xl rounded-br-md bg-sky-brand px-3.5 py-2.5 text-[13px] leading-relaxed text-white">
           {text}
         </div>
-        <span className="pr-1 text-[10px] font-medium text-faint">{fmtTime(timestamp)}</span>
+        <span className="flex items-center gap-1 pr-1 text-[10px] font-medium text-faint">
+          {fmtTime(timestamp)}
+          <CheckCheck className="size-3.5 text-sky-brand" aria-label="Delivered" />
+        </span>
       </div>
     );
   }
@@ -37,13 +42,14 @@ export default function MessageBubble({
         <Mic className="size-3" />
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="text-[11px] font-bold text-muted">{agentName}</span>
+        <span className="text-[11px] font-medium text-faint">
+          <span className="font-bold text-muted">{PERSONA}</span> · {fmtTime(timestamp)}
+        </span>
         <div className="max-w-[92%] rounded-2xl rounded-tl-md bg-paper-2 px-3.5 py-2.5 text-[13px] leading-relaxed text-ink">
           <div className="mmt-md">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{text}</ReactMarkdown>
           </div>
         </div>
-        <span className="pl-1 text-[10px] font-medium text-faint">{fmtTime(timestamp)}</span>
       </div>
     </div>
   );

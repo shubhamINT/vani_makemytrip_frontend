@@ -30,7 +30,7 @@ export default function LiveShell({
   onDisconnect: () => void;
 }) {
   return (
-    <div className="live-shell fixed inset-0 flex flex-col bg-paper font-body text-ink">
+    <div className="live-shell fixed inset-0 flex flex-col bg-paper-2 font-body text-ink">
       <LiveHeader conn={conn} onReset={onDisconnect} />
 
       {conn === 'error' && error && (
@@ -50,13 +50,14 @@ export default function LiveShell({
       )}
 
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-y-auto px-4 pb-4 sm:px-5 lg:grid-cols-[280px_minmax(0,1fr)_260px] lg:overflow-visible xl:grid-cols-[320px_minmax(0,1fr)_300px]">
-        <div className="order-3 h-105 min-h-0 lg:order-none lg:h-auto">
+        {/* Three clean white panels on a cool-gray canvas. */}
+        <div className="order-3 flex h-105 min-h-0 flex-col overflow-hidden rounded-card-lg border border-line bg-surface shadow-card lg:order-none lg:h-auto">
           <ChatPanel agentName={agentName} />
         </div>
-        <div className="order-1 flex min-h-0 flex-col lg:order-none">
+        <div className="order-1 flex min-h-0 flex-col overflow-hidden rounded-card-lg border border-line bg-surface px-4 shadow-card lg:order-none">
           <MainStage connecting={conn !== 'connected'} />
         </div>
-        <div className="order-2 min-h-0 lg:order-none">
+        <div className="order-2 min-h-0 overflow-y-auto rounded-card-lg border border-line bg-surface p-4 shadow-card lg:order-none">
           <UtilityRail />
         </div>
       </div>

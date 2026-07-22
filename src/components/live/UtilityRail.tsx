@@ -22,6 +22,10 @@ export default function UtilityRail() {
 
   return (
     <div className="flex min-h-0 flex-col gap-4">
+      <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-emerald-brand/15 px-2.5 py-1 text-[10px] font-bold tracking-[0.08em] text-ink/80">
+        <span className="size-1.5 rounded-full bg-emerald-brand" aria-hidden="true" />
+        YOUR TRIP
+      </span>
       <HelpCard />
       {summary && <TripSummaryCard summary={summary} onAction={sendAction} />}
       {weather && summary?.destination && (

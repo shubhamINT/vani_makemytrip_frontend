@@ -10,7 +10,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          'bg-sky-brand text-white shadow-card hover:bg-[#0b93d1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-brand/50 focus-visible:ring-offset-2',
+          'bg-sky-brand text-white shadow-card hover:bg-[#1d4ed8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-brand/50 focus-visible:ring-offset-2',
         coral:
           'bg-coral text-white shadow-card hover:bg-coral-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-coral/50 focus-visible:ring-offset-2',
         outline:
@@ -18,7 +18,7 @@ const buttonVariants = cva(
         ghost:
           'text-muted hover:bg-paper-2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-paper-2 focus-visible:ring-offset-2',
         link:
-          'text-sky-brand underline-offset-4 hover:underline hover:text-[#0b93d1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-brand/50 focus-visible:ring-offset-2',
+          'text-sky-brand underline-offset-4 hover:underline hover:text-[#1d4ed8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-brand/50 focus-visible:ring-offset-2',
         danger:
           'bg-danger/10 text-danger hover:bg-danger hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/50 focus-visible:ring-offset-2',
       },

@@ -7,18 +7,18 @@
 
 :root {
   /* MakeMyTrip — warm white paper, brand-red accents */
-  --paper: #fbfaf9;
-  --paper-2: #f3f1ef;
+  --paper: #ffffff;
+  --paper-2: #f3f5f8;
   --surface: #ffffff;
   --ink: #131018;
   --muted: #5f5a64;
   --faint: #948e9a;
-  --line: #ebe7e9;
+  --line: #e8ebf0;
   --coral: #e7332f;
   --coral-ink: #c9201d;
   --coral-soft: #fdedec;
-  --sky: #0ea5e9;
-  --sky-soft: #e8f6fd;
+  --sky: #2563eb;
+  --sky-soft: #eaf1ff;
   --teal: #22d3a5;
   --hero-orb: linear-gradient(150deg, #ff7554 0%, #e7263c 100%);
   --danger: #e5484d;

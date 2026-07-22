@@ -16,7 +16,8 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useTopicJSON } from '../../hooks/useTopicJSON';
 import { useTopicJSONList } from '../../hooks/useTopicJSONList';
-import type { TripHero, HotelsList, FlightsList, BookingConfirmation, DetailView } from '../../lib/streamTypes';
+import { useTopicJSONAccumulate } from '../../hooks/useTopicJSONAccumulate';
+import type { TripHero, HotelsList, FlightsList, BookingConfirmation, DetailView, Hotel as HotelData, Flight as FlightData } from '../../lib/streamTypes';
 import HeroCard from './HeroCard';
 import HotelsSection from './HotelsSection';
 import FlightsSection from './FlightsSection';
@@ -75,6 +76,17 @@ const TAB_ICONS: Record<TabKey, LucideIcon> = {
 
 const normTab = (t: string): TabKey => (TAB_ORDER.includes(t as TabKey) ? (t as TabKey) : 'overview');
 
+// Stable extractors for useTopicJSONAccumulate (kept out of the component so
+// their identity never changes across renders).
+const pickHotels = (l: HotelsList) => l.hotels;
+const pickFlights = (l: FlightsList) => l.flights;
+const byId = (x: HotelData) => x.id;
+// Flights reuse `id` across routes (agent keys by flight number), so bare id
+// would drop a second route's same-numbered flight. Key by the natural
+// identity: airline + number + route + departure time.
+const flightKey = (f: FlightData) =>
+  `${f.airline}|${f.flightNo ?? f.id}|${f.depart.code}-${f.arrive.code}|${f.depart.time}`;
+
 /**
  * Center column: tabbed trip dashboard. Native sections (hero, hotels,
  * flights) come from typed JSON topics; everything else streams as
@@ -85,10 +97,12 @@ export default function MainStage({ connecting }: { connecting: boolean }) {
   const { send } = useChat();
 
   const hero = useTopicJSON<TripHero>('trip.hero');
-  const hotels = useTopicJSON<HotelsList>('hotels.list');
-  const flights = useTopicJSON<FlightsList>('flights.list');
-  const experiences = useTopicJSON<HotelsList>('experiences.list');
-  const food = useTopicJSON<HotelsList>('food.list');
+  // Overview shows `latest` (replace); section tabs show `all` (append across
+  // queries, id-deduped) — e.g. Kolkata hotels stay when Delhi hotels arrive.
+  const { latest: hotels, all: allHotels } = useTopicJSONAccumulate<HotelsList, HotelData>('hotels.list', pickHotels, byId);
+  const { latest: flights, all: allFlights } = useTopicJSONAccumulate<FlightsList, FlightData>('flights.list', pickFlights, flightKey);
+  const { latest: experiences, all: allExperiences } = useTopicJSONAccumulate<HotelsList, HotelData>('experiences.list', pickHotels, byId);
+  const { latest: food, all: allFood } = useTopicJSONAccumulate<HotelsList, HotelData>('food.list', pickHotels, byId);
   const detail = useTopicJSON<DetailView>('detail.view');
   const bookings = useTopicJSONList<BookingConfirmation>('booking.confirmation');
 
@@ -236,19 +250,27 @@ export default function MainStage({ connecting }: { connecting: boolean }) {
             ref={t === activeTab ? bodyRef : undefined}
             className="flex h-full flex-col gap-5 overflow-y-auto pb-32 pt-4"
           >
-            {detail && <DetailCard data={detail} onAction={sendAction} />}
+            {detail && (t === 'overview' || t === 'hotels') && (
+              <DetailCard data={detail} onAction={sendAction} />
+            )}
             {t === 'overview' && hero && <HeroCard hero={hero} />}
-            {(t === 'overview' || t === 'hotels') && hotels && hotels.hotels.length > 0 && (
-              <HotelsSection data={hotels} limit={t === 'overview' ? 4 : undefined} onAction={sendAction} />
+            {t === 'overview' && hotels && hotels.hotels.length > 0 && (
+              <HotelsSection data={hotels} limit={4} onAction={sendAction} />
             )}
-            {(t === 'overview' || t === 'flights') && flights && flights.flights.length > 0 && (
-              <FlightsSection data={flights} limit={t === 'overview' ? 3 : undefined} onAction={sendAction} />
+            {t === 'hotels' && hotels && allHotels.length > 0 && (
+              <HotelsSection data={{ ...hotels, hotels: allHotels }} onAction={sendAction} />
             )}
-            {t === 'experiences' && experiences && experiences.hotels.length > 0 && (
-              <HotelsSection data={experiences} onAction={sendAction} />
+            {t === 'overview' && flights && flights.flights.length > 0 && (
+              <FlightsSection data={flights} limit={3} onAction={sendAction} />
             )}
-            {t === 'food' && food && food.hotels.length > 0 && (
-              <HotelsSection data={food} onAction={sendAction} />
+            {t === 'flights' && flights && allFlights.length > 0 && (
+              <FlightsSection data={{ ...flights, flights: allFlights }} onAction={sendAction} />
+            )}
+            {t === 'experiences' && experiences && allExperiences.length > 0 && (
+              <HotelsSection data={{ ...experiences, hotels: allExperiences }} onAction={sendAction} />
+            )}
+            {t === 'food' && food && allFood.length > 0 && (
+              <HotelsSection data={{ ...food, hotels: allFood }} onAction={sendAction} />
             )}
             {t === 'booking' &&
               bookings

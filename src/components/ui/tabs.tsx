@@ -20,7 +20,7 @@ function TabsTrigger({ className, ...props }: React.ComponentProps<typeof TabsPr
     <TabsPrimitive.Trigger
       className={cn(
         'relative -mb-px inline-flex cursor-pointer items-center gap-1.5 border-b-2 border-transparent px-3 py-2.5 text-[13px] font-semibold text-muted transition-all duration-150',
-        'hover:text-ink data-[state=active]:border-coral data-[state=active]:text-coral-ink',
+        'hover:text-ink data-[state=active]:border-sky-brand data-[state=active]:text-sky-brand',
         'outline-none focus-visible:ring-2 focus-visible:ring-sky-brand/50 focus-visible:ring-inset',
         '[&_svg]:size-4 [&_svg]:shrink-0',
         className,
