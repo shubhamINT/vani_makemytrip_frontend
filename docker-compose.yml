@@ -1,0 +1,9 @@
+services:
+  frontend:
+    build: .
+    image: makemytrip-frontend
+    container_name: makemytrip-frontend
+    ports:
+      - "${PORT}:${PORT}"
+    environment:
+      - PORT=${PORT}
